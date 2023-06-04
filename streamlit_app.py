@@ -1,6 +1,7 @@
 import os
 from random import choice, seed, random, randint
 from datetime import datetime
+import logging
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import OpenAI
@@ -45,11 +46,11 @@ def init():
     check_and_load_stsecret("OPENAI_ORG_ID")
     check_and_load_stsecret("TEST_MODE")
 
+    global TEST_MODE
     if os.getenv("TEST_MODE") != "":
-        global TEST_MODE
-        TEST_MODE = os.getenv("TEST_MODE")
+        TEST_MODE = os.getenv("TEST_MODE") == "True"
 
-    print(f"TEST_MODE = {TEST_MODE}")
+    logging.warning(f"TEST_MODE = {TEST_MODE}")
 
     st.set_page_config(
         page_title="Master Debaters",
