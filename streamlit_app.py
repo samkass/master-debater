@@ -15,7 +15,7 @@ from streamlit_chat import message
 from Persona import Persona
 
 TEST_MODE = True
-SHOW_SETTINGS = True
+SHOW_SETTINGS = False
 
 idle_messages = [
     "Thinking...",
