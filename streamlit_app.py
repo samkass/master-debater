@@ -15,6 +15,7 @@ from streamlit_chat import message
 from Persona import Persona
 
 TEST_MODE = True
+SHOW_SETTINGS = True
 
 idle_messages = [
     "Thinking...",
@@ -45,12 +46,17 @@ def init():
     check_and_load_stsecret("OPENAI_API_KEY")
     check_and_load_stsecret("OPENAI_ORG_ID")
     check_and_load_stsecret("TEST_MODE")
+    check_and_load_stsecret("SHOW_SETTINGS")
 
     global TEST_MODE
     if os.getenv("TEST_MODE") != "":
         TEST_MODE = os.getenv("TEST_MODE") == "True"
+    global SHOW_SETTINGS
+    if os.getenv("SHOW_SETTINGS") != "":
+        TEST_MODE = os.getenv("SHOW_SETTINGS") == "True"
 
     logging.warning(f"TEST_MODE = {TEST_MODE}")
+    logging.warning(f"SHOW_SETTINGS = {SHOW_SETTINGS}")
 
     st.set_page_config(
         page_title="Master Debaters",
@@ -110,6 +116,8 @@ def new_debate(topic):
     st.session_state.response = ""
     st.session_state.response_count = 0
 
+    #TODO: Clear debate region (st.session_state.chat_region)
+
     generate_next_argument(topic, "Open")
     generate_next_argument(topic, "Open")
 
@@ -154,6 +162,7 @@ def generate_next_argument(topic, phase):
                 key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
     increment_debate()
     # TODO: Switch to streaming interface
+    # TODO: Long running responses show oddly with spinners
 
 
 def print_debate():
@@ -199,12 +208,13 @@ def main():
                                           placeholder="Comma-separated words",
                                           value="pragmatic, empathetic, liberal, nonreligious, anti-gun, pro-choice")
 
-        with st.expander("Settings", expanded=False):
-            st.session_state.model_name = st.selectbox("Model",
-                                                       ("gpt-3.5-turbo",
-                                                        "text-davinci-003"))
-            st.session_state.model_type = st.radio("Type",
-                                                   ("Chat", "Text"))
+        if SHOW_SETTINGS:
+            with st.expander("Settings", expanded=False):
+                st.session_state.model_name = st.selectbox("Model",
+                                                           ("gpt-3.5-turbo",
+                                                            "text-davinci-003"))
+                st.session_state.model_type = st.radio("Type",
+                                                       ("Chat", "Text"))
 
         topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
 
