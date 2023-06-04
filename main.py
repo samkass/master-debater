@@ -1,3 +1,5 @@
+from random import choice, seed, random, randint
+
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import OpenAI
@@ -9,6 +11,17 @@ from langchain.schema import ChatMessage
 from streamlit_chat import message
 
 from Persona import Persona
+
+TEST_MODE = True
+
+idle_messages = [
+    "Thinking...",
+    "Go Away! 'Bating!",
+    "Hmmm...",
+    "I've read Wikipedia, so I'm somewhat of an expert...",
+    "Well, actually..."
+]
+seed()
 
 
 @st.cache_resource
@@ -27,8 +40,18 @@ def init():
         page_title="Master Debaters",
         page_icon="🤷‍"
     )
-    st.session_state.model_name = "gpt-3.5-turbo"
-    st.session_state.model_type = "Chat"
+    if "model_name" not in st.session_state:
+        st.session_state.model_name = "gpt-3.5-turbo"
+    if "model_type" not in st.session_state:
+        st.session_state.model_type = "Chat"
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "response_count" not in st.session_state:
+        st.session_state.response_count = 0
+    if "response" not in st.session_state:
+        st.session_state.response = ""
+
+    st.session_state.chat_region = st.container()
 
 
 def run_chain_with_cb(chain, query):
@@ -39,12 +62,16 @@ def run_chain_with_cb(chain, query):
     return result
 
 
-def generate_debate(debater1, debater2, topic):
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+def reset_messages():
+    st.session_state.messages = []
+
+
+def new_debate(topic):
+    reset_messages()
+    st.session_state.debate_id = randint(10000000, 100000000)
 
     llm = generate_llm(st.session_state.model_name, st.session_state.model_type == "Chat")
-    debater1_conversation = ConversationChain(
+    st.session_state.debater1_conversation = ConversationChain(
         llm=llm,
         verbose=True,
         memory=ConversationSummaryBufferMemory(
@@ -52,7 +79,7 @@ def generate_debate(debater1, debater2, topic):
             max_token_limit=650
         )
     )
-    debater2_conversation = ConversationChain(
+    st.session_state.debater2_conversation = ConversationChain(
         llm=llm,
         verbose=True,
         memory=ConversationSummaryBufferMemory(
@@ -60,27 +87,86 @@ def generate_debate(debater1, debater2, topic):
             max_token_limit=650
         )
     )
-    with st.spinner("Thinking..."):
-        response = run_chain_with_cb(debater1_conversation, debater1.opening_prompt(topic))
-#    st.session_state.messages.append(DebateMessage(message=response, name=debater1.name))
-    st.session_state.messages.append(ChatMessage(content=response, role=debater1.name))
-    message(message=response, is_user=False, avatar_style="pixel-art", seed=debater1.name)
 
-    with st.spinner("Thinking..."):
-        response = run_chain_with_cb(debater2_conversation, debater2.opening_prompt(topic, response))
-    st.session_state.messages.append(ChatMessage(content=response, role=debater2.name))
-    message(message=response, is_user=True, avatar_style="pixel-art", seed=debater2.name)
+    st.session_state.debater = st.session_state.debater1
+    st.session_state.conversation = st.session_state.debater1_conversation
+    st.session_state.response_count = 0
 
-    # print(debater2_response)
-    # debater1_response = run_chain_with_cb(debater1_conversation, debater1.response_prompt(debater2_response))
-    # print(debater1_response)
-    # debater2_response = run_chain_with_cb(debater2_conversation, debater2.response_prompt(debater1_response))
-    # print(debater2_response)
-    # debater1_response = run_chain_with_cb(debater1_conversation, debater1.conclusion_prompt())
-    # print(debater1_response)
-    # debater2_response = run_chain_with_cb(debater2_conversation, debater2.conclusion_prompt())
-    # print(debater2_response)
+    generate_initial_arguments(topic)
+    generate_initial_arguments(topic)
 
+
+def increment_debate():
+    if st.session_state.debater == st.session_state.debater1:
+        st.session_state.debater = st.session_state.debater2
+        st.session_state.conversation = st.session_state.debater2_conversation
+    else:
+        st.session_state.debater = st.session_state.debater1
+        st.session_state.conversation = st.session_state.debater1_conversation
+
+    st.session_state.response_count += 1
+
+
+def generate_initial_arguments(topic):
+    new_response = ""
+    if TEST_MODE:
+        with st.spinner(choice(idle_messages)):
+            new_response = f"Random Message Number {random()}"
+    else:
+        with st.spinner(choice(idle_messages)):
+            new_response = run_chain_with_cb(st.session_state.conversation,
+                                             st.session_state.debater.opening_prompt(topic,
+                                                                                     st.session_state.response))
+    st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
+
+    st.session_state.response = new_response
+    with st.session_state.chat_region:
+        message(message=st.session_state.response,
+                is_user=(st.session_state.debater.name != st.session_state.debater2.name),
+                avatar_style="pixel-art",
+                seed=st.session_state.debater.name,
+                key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
+    increment_debate()
+
+
+def generate_next_argument(topic):
+    new_response = ""
+    if TEST_MODE:
+        with st.spinner(choice(idle_messages)):
+            new_response = f"Random Message Number {random()}"
+    else:
+        with st.spinner(choice(idle_messages)):
+            new_response = run_chain_with_cb(st.session_state.conversation,
+                                             st.session_state.debater.response_prompt(st.session_state.response))
+    st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
+
+    st.session_state.response = new_response
+    with st.session_state.chat_region:
+        message(message=st.session_state.response,
+                is_user=(st.session_state.debater.name != st.session_state.debater2.name),
+                avatar_style="pixel-art",
+                seed=st.session_state.debater.name,
+                key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
+    increment_debate()
+
+
+def print_debate():
+    with st.session_state.chat_region:
+        for i, msg in enumerate(st.session_state.messages):
+            message(message=msg.content,
+                    is_user=(msg.role == st.session_state.debater1.name),
+                    avatar_style="pixel-art",
+                    seed=msg.role,
+                    key=f"{msg.role}-{i}-{st.session_state.debate_id}")
+
+
+def continue_debate(topic):
+    if st.session_state.response_count > 0:
+        continue_debate_button = st.button("Continue Debate", type="primary")
+
+        if continue_debate_button:
+            generate_next_argument(topic)
+#TODO: On first "Continue Debate", everything flickers
 
 def main():
     init()
@@ -91,14 +177,14 @@ def main():
             debater1_id = st.text_input(label="Identity", value="a Conservative", placeholder="Short Description")
             debater1_adjs = st.text_input(label="Adjectives",
                                           placeholder="Comma-separated words",
-                                          value="ideological, serious, religious, Christian, pro-life")
+                                          value="ideological, serious, conservative, religious, Christian, pro-life")
 
         with st.expander("Opponent", expanded=True):
             debater2_name = st.text_input(label="Name", value="Luke", placeholder="Name")
             debater2_id = st.text_input(label="Identity", value="a Progressive", placeholder="Short Description")
             debater2_adjs = st.text_input(label="Adjectives",
                                           placeholder="Comma-separated words",
-                                          value="empathetic, pragmatic, liberal, atheist, anti-gun, pro-choice")
+                                          value="pragmatic, empathetic, liberal, nonreligious, anti-gun, pro-choice")
 
         with st.expander("Settings", expanded=False):
             st.session_state.model_name = st.selectbox("Model",
@@ -109,17 +195,33 @@ def main():
 
         topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
 
-        debate_button = st.button("Debate!", type="primary")
+        new_debate_button = st.button("New Debate!", type="primary")
 
-    if debate_button:
-        if debater1_name == "" or debater2_name == "" or debater1_id == "" or debater2_id == "" or debater1_adjs == "" or debater2_adjs == "":
-            message(message="Please fill in the debater details!!", avatar_style="bottts")
+    with st.session_state.chat_region:
+        st.text(body='''
+        Welcome to Master Debaters! If you are curious and want to find satisfaction alone 
+        in the privacy of your own room, try our 'baters on your favorite topic. Enjoy!
+        ''')
+    print_debate()
+
+    if new_debate_button:
+        if (debater1_name == "" or
+                debater2_name == "" or
+                debater1_id == "" or
+                debater2_id == "" or
+                debater1_adjs == "" or
+                debater2_adjs == "" or
+                topic == ""):
+            message(message="Please fill in the debate details!!", avatar_style="bottts")
 
         else:
-            debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
-            debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
+            st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
+            st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
 
-            generate_debate(debater1, debater2, topic)
+            reset_messages()
+            new_debate(topic)
+
+    continue_debate(topic)
 
 
 # Press the green button in the gutter to run the script.
