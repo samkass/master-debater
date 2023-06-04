@@ -49,6 +49,8 @@ def init():
         global TEST_MODE
         TEST_MODE = os.getenv("TEST_MODE")
 
+    print(f"TEST_MODE = {TEST_MODE}")
+
     st.set_page_config(
         page_title="Master Debaters",
         page_icon="🤷‍"
