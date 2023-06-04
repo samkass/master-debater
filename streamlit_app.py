@@ -107,6 +107,7 @@ def new_debate(topic):
 
     st.session_state.debater = st.session_state.debater1
     st.session_state.conversation = st.session_state.debater1_conversation
+    st.session_state.response = ""
     st.session_state.response_count = 0
 
     generate_next_argument(topic, "Open")
@@ -140,7 +141,7 @@ def generate_next_argument(topic, phase):
                                                  st.session_state.debater.response_prompt(st.session_state.response))
             elif phase == "Conclude":
                 new_response = run_chain_with_cb(st.session_state.conversation,
-                                                 st.session_state.debater.conclusion_prompt(st.session_state.response))
+                                                 st.session_state.debater.conclusion_prompt())
 
     st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
 
