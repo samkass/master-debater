@@ -29,5 +29,5 @@ class Persona:
 
     def conclusion_prompt(self):
         return f'''
-        Conclude the debate, generating closing remarks as {self.name}.
+        Conclude the debate, generating closing remarks as {self.name} on the topic of {self.topic}.
         '''

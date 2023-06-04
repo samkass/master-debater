@@ -1,5 +1,5 @@
 from random import choice, seed, random, randint
-
+from datetime import datetime
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import OpenAI
@@ -68,6 +68,7 @@ def reset_messages():
 
 def new_debate(topic):
     reset_messages()
+    st.session_state.debating = True
     st.session_state.debate_id = randint(10000000, 100000000)
 
     llm = generate_llm(st.session_state.model_name, st.session_state.model_type == "Chat")
@@ -92,8 +93,8 @@ def new_debate(topic):
     st.session_state.conversation = st.session_state.debater1_conversation
     st.session_state.response_count = 0
 
-    generate_initial_arguments(topic)
-    generate_initial_arguments(topic)
+    generate_next_argument(topic, "Open")
+    generate_next_argument(topic, "Open")
 
 
 def increment_debate():
@@ -107,37 +108,24 @@ def increment_debate():
     st.session_state.response_count += 1
 
 
-def generate_initial_arguments(topic):
+def generate_next_argument(topic, phase):
     new_response = ""
     if TEST_MODE:
         with st.spinner(choice(idle_messages)):
-            new_response = f"Random Message Number {random()}"
+            new_response = f"Random {phase} message number {random()} at {datetime.now()}"
     else:
         with st.spinner(choice(idle_messages)):
-            new_response = run_chain_with_cb(st.session_state.conversation,
-                                             st.session_state.debater.opening_prompt(topic,
-                                                                                     st.session_state.response))
-    st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
+            if phase == "Open":
+                new_response = run_chain_with_cb(st.session_state.conversation,
+                                                 st.session_state.debater.opening_prompt(topic,
+                                                                                         st.session_state.response))
+            elif phase == "Continue":
+                new_response = run_chain_with_cb(st.session_state.conversation,
+                                                 st.session_state.debater.response_prompt(st.session_state.response))
+            elif phase == "Conclude":
+                new_response = run_chain_with_cb(st.session_state.conversation,
+                                                 st.session_state.debater.conclusion_prompt(st.session_state.response))
 
-    st.session_state.response = new_response
-    with st.session_state.chat_region:
-        message(message=st.session_state.response,
-                is_user=(st.session_state.debater.name != st.session_state.debater2.name),
-                avatar_style="pixel-art",
-                seed=st.session_state.debater.name,
-                key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
-    increment_debate()
-
-
-def generate_next_argument(topic):
-    new_response = ""
-    if TEST_MODE:
-        with st.spinner(choice(idle_messages)):
-            new_response = f"Random Message Number {random()}"
-    else:
-        with st.spinner(choice(idle_messages)):
-            new_response = run_chain_with_cb(st.session_state.conversation,
-                                             st.session_state.debater.response_prompt(st.session_state.response))
     st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
 
     st.session_state.response = new_response
@@ -161,12 +149,19 @@ def print_debate():
 
 
 def continue_debate(topic):
-    if st.session_state.response_count > 0:
-        continue_debate_button = st.button("Continue Debate", type="primary")
+    if st.session_state.response_count > 0 and st.session_state.debating:
+        col1, col2 = st.columns(2)
+        continue_debate_button = col1.button("Continue Debate", type="primary")
+        conclude_debate_button = col2.button("Conclude Debate", type="primary")
 
         if continue_debate_button:
-            generate_next_argument(topic)
-#TODO: On first "Continue Debate", everything flickers
+            generate_next_argument(topic, "Continue")
+        if conclude_debate_button:
+            st.session_state.debating = False
+            generate_next_argument(topic, "Conclude")
+            generate_next_argument(topic, "Conclude")
+            st.experimental_rerun()
+
 
 def main():
     init()
@@ -202,7 +197,6 @@ def main():
         Welcome to Master Debaters! If you are curious and want to find satisfaction alone 
         in the privacy of your own room, try our 'baters on your favorite topic. Enjoy!
         ''')
-    print_debate()
 
     if new_debate_button:
         if (debater1_name == "" or
@@ -220,6 +214,8 @@ def main():
 
             reset_messages()
             new_debate(topic)
+    else:
+        print_debate()
 
     continue_debate(topic)
 
