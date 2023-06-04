@@ -34,12 +34,20 @@ def generate_llm(model_name="gpt-3.5-turbo", is_chat=True, temperature=0.9):
     return llm
 
 
+def check_and_load_stsecret(name):
+    if name in st.secrets and st.secrets[name] != "":
+        os.environ.setdefault(name, st.secrets[name])
+
+
 def init():
     load_dotenv()
-    if st.secrets["OPENAI_API_KEY"] != "":
-        os.environ.setdefault("OPENAI_API_KEY", st.secrets["OPENAI_API_KEY"])
-    if st.secrets["OPENAI_ORG_ID"] != "":
-        os.environ.setdefault("OPENAI_ORG_ID", st.secrets["OPENAI_ORG_ID"])
+    check_and_load_stsecret("OPENAI_API_KEY")
+    check_and_load_stsecret("OPENAI_ORG_ID")
+    check_and_load_stsecret("TEST_MODE")
+
+    if os.getenv("TEST_MODE") != "":
+        global TEST_MODE
+        TEST_MODE = os.getenv("TEST_MODE")
 
     st.set_page_config(
         page_title="Master Debaters",
@@ -141,6 +149,7 @@ def generate_next_argument(topic, phase):
                 seed=st.session_state.debater.name,
                 key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
     increment_debate()
+    # TODO: Switch to streaming interface
 
 
 def print_debate():
