@@ -1,3 +1,4 @@
+import os
 from random import choice, seed, random, randint
 from datetime import datetime
 import streamlit as st
@@ -35,6 +36,10 @@ def generate_llm(model_name="gpt-3.5-turbo", is_chat=True, temperature=0.9):
 
 def init():
     load_dotenv()
+    if st.secrets["OPEN_API_KEY"] != "":
+        os.environ.setdefault("OPEN_API_KEY", st.secrets["OPEN_API_KEY"])
+    if st.secrets["OPENAI_ORG_ID"] != "":
+        os.environ.setdefault("OPENAI_ORG_ID", st.secrets["OPENAI_ORG_ID"])
 
     st.set_page_config(
         page_title="Master Debaters",
