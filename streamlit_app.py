@@ -2,6 +2,8 @@ import os
 from random import choice, seed, random, randint
 from datetime import datetime
 import logging
+from time import sleep
+
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import OpenAI
@@ -19,6 +21,8 @@ SHOW_SETTINGS = False
 
 idle_messages = [
     "Thinking...",
+    "Just a minute...",
+    "Let me say this about that...",
     "Go Away! 'Bating!",
     "Hmmm...",
     "I've read Wikipedia, so I'm somewhat of an expert...",
@@ -99,7 +103,7 @@ def new_debate(topic):
         verbose=True,
         memory=ConversationSummaryBufferMemory(
             llm=llm,
-            max_token_limit=650
+            max_token_limit=1000
         )
     )
     st.session_state.debater2_conversation = ConversationChain(
@@ -107,7 +111,7 @@ def new_debate(topic):
         verbose=True,
         memory=ConversationSummaryBufferMemory(
             llm=llm,
-            max_token_limit=650
+            max_token_limit=1000
         )
     )
 
@@ -137,6 +141,7 @@ def generate_next_argument(topic, phase):
     new_response = ""
     if TEST_MODE:
         with st.spinner(choice(idle_messages)):
+            sleep(5)
             new_response = f"Random {phase} message number {random()} at {datetime.now()}"
     else:
         with st.spinner(choice(idle_messages)):
@@ -219,6 +224,7 @@ def main():
         topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
 
         new_debate_button = st.button("New Debate!", type="primary")
+    #TODO: Add Info button
 
     with st.session_state.chat_region:
         st.text(body='''
