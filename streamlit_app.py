@@ -28,12 +28,19 @@ def init_random():
 
 
 def init_modes():
+    global KASS_KEY_PASS
     global TEST_MODE
     global SHOW_SETTINGS
     global USE_STREAMING
 
     check_and_load_stsecret("OPENAI_API_KEY")
     check_and_load_stsecret("OPENAI_ORG_ID")
+    check_and_load_stsecret("KASS_KEY")
+    check_and_load_stsecret("KASS_KEY_PASS")
+
+    if os.getenv("KASS_KEY_PASS") != "":
+        KASS_KEY_PASS = os.getenv("KASS_KEY_PASS")
+
     check_and_load_stsecret("TEST_MODE")
     check_and_load_stsecret("SHOW_SETTINGS")
     check_and_load_stsecret("USE_STREAMING")
@@ -80,6 +87,7 @@ def init():
 
 def sidebar():
     with st.sidebar:
+        openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
         with st.expander("Debater", expanded=True):
             debater1_name = st.text_input(label="Name", value="Bo", placeholder="Name")
             debater1_id = st.text_input(label="Identity", value="a Conservative", placeholder="Short Description")
@@ -104,6 +112,7 @@ def sidebar():
         new_debate_button = st.button("New Debate!", type="primary")
 
     return {
+        'openapi_key': openapi_key,
         'debater1': {
             'name': debater1_name,
             'id': debater1_id,
@@ -202,11 +211,20 @@ def is_debate_info_complete():
             st.session_state.topic != "")
 
 
+def set_openapi_key(key):
+    if key != '':
+        if key == KASS_KEY_PASS and os.getenv("OPENAI_API_KEY") is not None:
+            os.environ["OPENAI_API_KEY"] = os.getenv("KASS_KEY")
+        else:
+            os.environ["OPENAI_API_KEY"] = key
+
+
 def main():
     init()
 
     # Get debater information from sidebar
     sidebar_values = sidebar()
+    openapi_key = sidebar_values['openapi_key']
     st.session_state.debater1 = sidebar_values['debater1']
     st.session_state.debater1["avatar"] = \
         f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={st.session_state.debater1['name']}"
@@ -220,6 +238,8 @@ def main():
         st.text(body='''
         Welcome to Master Debaters! They will debate on the topic of your choice. Enjoy!
         ''')
+
+    set_openapi_key(openapi_key)
 
     print_debate()
 
