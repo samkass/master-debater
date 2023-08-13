@@ -1,75 +1,73 @@
-import os
-from random import choice, seed, random, randint
-from datetime import datetime
 import logging
-from time import sleep
+import os
+from random import seed, randint
 
 import streamlit as st
-from dotenv import load_dotenv
-from langchain import OpenAI
-from langchain.callbacks import get_openai_callback
-from langchain.chains import ConversationChain
-from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
-from langchain.schema import ChatMessage
-from streamlit_chat import message
 
 from Persona import Persona
+from StreamingChat import StreamingChat
 
-TEST_MODE = True
-SHOW_SETTINGS = False
-
-idle_messages = [
-    "Thinking...",
-    "Just a minute...",
-    "Let me say this about that...",
-    "Go Away! 'Bating!",
-    "Hmmm...",
-    "I've read Wikipedia, so I'm somewhat of an expert...",
-    "Well, actually..."
-]
-seed()
+AVATAR_STYLE = "pixel-art"
 
 
 @st.cache_resource
-def generate_llm(model_name="gpt-3.5-turbo", is_chat=True, temperature=0.9):
-    if is_chat:
-        llm = ChatOpenAI(model_name=model_name, temperature=temperature)
-    else:
-        llm = OpenAI(model_name=model_name, temperature=temperature)
-    return llm
-
-
 def check_and_load_stsecret(name):
     if name in st.secrets and st.secrets[name] != "":
         os.environ.setdefault(name, st.secrets[name])
 
 
-def init():
-    load_dotenv()
+@st.cache_resource
+def init_state():
+    st.session_state.state = 'SETUP'
+
+
+@st.cache_resource
+def init_random():
+    seed()
+
+
+def init_modes():
+    global TEST_MODE
+    global SHOW_SETTINGS
+    global USE_STREAMING
+
     check_and_load_stsecret("OPENAI_API_KEY")
     check_and_load_stsecret("OPENAI_ORG_ID")
     check_and_load_stsecret("TEST_MODE")
     check_and_load_stsecret("SHOW_SETTINGS")
+    check_and_load_stsecret("USE_STREAMING")
 
-    global TEST_MODE
     if os.getenv("TEST_MODE") != "":
         TEST_MODE = os.getenv("TEST_MODE") == "True"
-    global SHOW_SETTINGS
+    else:
+        TEST_MODE = True
     if os.getenv("SHOW_SETTINGS") != "":
-        TEST_MODE = os.getenv("SHOW_SETTINGS") == "True"
+        SHOW_SETTINGS = os.getenv("SHOW_SETTINGS") == "True"
+    else:
+        SHOW_SETTINGS = False
+    if os.getenv("USE_STREAMING") != "":
+        USE_STREAMING = os.getenv("USE_STREAMING") == "True"
+    else:
+        USE_STREAMING = False
 
     logging.warning(f"TEST_MODE = {TEST_MODE}")
     logging.warning(f"SHOW_SETTINGS = {SHOW_SETTINGS}")
+    logging.warning(f"USE_STREAMING = {USE_STREAMING}")
 
+
+def init():
     st.set_page_config(
         page_title="Master Debaters",
         page_icon="🤷‍"
     )
+
+    init_random()
+    init_state()
+    init_modes()
+
     if "model_name" not in st.session_state:
         st.session_state.model_name = "gpt-3.5-turbo"
-    if "model_type" not in st.session_state:
-        st.session_state.model_type = "Chat"
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "response_count" not in st.session_state:
@@ -80,124 +78,7 @@ def init():
     st.session_state.chat_region = st.container()
 
 
-def run_chain_with_cb(chain, query):
-    with get_openai_callback() as cb:
-        result = chain.run(query)
-        print(cb)
-
-    return result
-
-
-def reset_messages():
-    st.session_state.messages = []
-
-
-def new_debate(topic):
-    reset_messages()
-    st.session_state.debating = True
-    st.session_state.debate_id = randint(10000000, 100000000)
-
-    llm = generate_llm(st.session_state.model_name, st.session_state.model_type == "Chat")
-    st.session_state.debater1_conversation = ConversationChain(
-        llm=llm,
-        verbose=True,
-        memory=ConversationSummaryBufferMemory(
-            llm=llm,
-            max_token_limit=1000
-        )
-    )
-    st.session_state.debater2_conversation = ConversationChain(
-        llm=llm,
-        verbose=True,
-        memory=ConversationSummaryBufferMemory(
-            llm=llm,
-            max_token_limit=1000
-        )
-    )
-
-    st.session_state.debater = st.session_state.debater1
-    st.session_state.conversation = st.session_state.debater1_conversation
-    st.session_state.response = ""
-    st.session_state.response_count = 0
-
-    #TODO: Clear debate region (st.session_state.chat_region)
-
-    generate_next_argument(topic, "Open")
-    generate_next_argument(topic, "Open")
-
-
-def increment_debate():
-    if st.session_state.debater == st.session_state.debater1:
-        st.session_state.debater = st.session_state.debater2
-        st.session_state.conversation = st.session_state.debater2_conversation
-    else:
-        st.session_state.debater = st.session_state.debater1
-        st.session_state.conversation = st.session_state.debater1_conversation
-
-    st.session_state.response_count += 1
-
-
-def generate_next_argument(topic, phase):
-    new_response = ""
-    if TEST_MODE:
-        with st.spinner(choice(idle_messages)):
-            sleep(5)
-            new_response = f"Random {phase} message number {random()} at {datetime.now()}"
-    else:
-        with st.spinner(choice(idle_messages)):
-            if phase == "Open":
-                new_response = run_chain_with_cb(st.session_state.conversation,
-                                                 st.session_state.debater.opening_prompt(topic,
-                                                                                         st.session_state.response))
-            elif phase == "Continue":
-                new_response = run_chain_with_cb(st.session_state.conversation,
-                                                 st.session_state.debater.response_prompt(st.session_state.response))
-            elif phase == "Conclude":
-                new_response = run_chain_with_cb(st.session_state.conversation,
-                                                 st.session_state.debater.conclusion_prompt())
-
-    st.session_state.messages.append(ChatMessage(content=new_response, role=st.session_state.debater.name))
-
-    st.session_state.response = new_response
-    with st.session_state.chat_region:
-        message(message=st.session_state.response,
-                is_user=(st.session_state.debater.name != st.session_state.debater2.name),
-                avatar_style="pixel-art",
-                seed=st.session_state.debater.name,
-                key=f"{st.session_state.debater.name}-{st.session_state.response_count}-{st.session_state.debate_id}")
-    increment_debate()
-    # TODO: Switch to streaming interface
-    # TODO: Long running responses show oddly with spinners
-
-
-def print_debate():
-    with st.session_state.chat_region:
-        for i, msg in enumerate(st.session_state.messages):
-            message(message=msg.content,
-                    is_user=(msg.role == st.session_state.debater1.name),
-                    avatar_style="pixel-art",
-                    seed=msg.role,
-                    key=f"{msg.role}-{i}-{st.session_state.debate_id}")
-
-
-def continue_debate(topic):
-    if st.session_state.response_count > 0 and st.session_state.debating:
-        col1, col2 = st.columns(2)
-        continue_debate_button = col1.button("Continue Debate", type="primary")
-        conclude_debate_button = col2.button("Conclude Debate", type="primary")
-
-        if continue_debate_button:
-            generate_next_argument(topic, "Continue")
-        if conclude_debate_button:
-            st.session_state.debating = False
-            generate_next_argument(topic, "Conclude")
-            generate_next_argument(topic, "Conclude")
-            st.experimental_rerun()
-
-
-def main():
-    init()
-
+def sidebar():
     with st.sidebar:
         with st.expander("Debater", expanded=True):
             debater1_name = st.text_input(label="Name", value="Bo", placeholder="Name")
@@ -216,42 +97,149 @@ def main():
         if SHOW_SETTINGS:
             with st.expander("Settings", expanded=False):
                 st.session_state.model_name = st.selectbox("Model",
-                                                           ("gpt-3.5-turbo",
-                                                            "text-davinci-003"))
-                st.session_state.model_type = st.radio("Type",
-                                                       ("Chat", "Text"))
+                                                           ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
 
         topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
 
         new_debate_button = st.button("New Debate!", type="primary")
-    #TODO: Add Info button
+
+    return {
+        'debater1': {
+            'name': debater1_name,
+            'id': debater1_id,
+            'adjs': debater1_adjs
+        },
+        'debater2': {
+            'name': debater2_name,
+            'id': debater2_id,
+            'adjs': debater2_adjs
+        },
+        'topic': topic,
+        'new_debate_button': new_debate_button,
+    }
+
+
+def print_debate():
+    if st.session_state.state == 'DEBATING':
+        with st.session_state.chat_region:
+            for i, msg in enumerate(st.session_state.messages):
+                with st.chat_message(msg["role"], avatar=msg["avatar"]):
+                    st.markdown(msg["content"])
+
+
+def new_debate(topic):
+    st.session_state.messages = []
+    st.session_state.state = 'DEBATING'
+
+    st.session_state.debater1_chat = StreamingChat()
+    st.session_state.debater2_chat = StreamingChat()
+
+    st.session_state.debater1_response = ""
+    st.session_state.debater2_response = ""
+
+
+def generate_response_pair(topic, phase):
+    st.session_state.debate_id = randint(10000000, 100000000)
+
+    st.session_state.debater1_response = ""
+    with st.session_state.chat_region:
+        with st.chat_message("user", avatar=st.session_state.debater1["avatar"]):
+            message_placeholder = st.empty()
+            full_response = ""
+            for response in st.session_state.debater1_chat.\
+                    response(st.session_state.debater1_persona.prompt_for_phase(phase,
+                                                                                topic,
+                                                                                st.session_state.debater2_response)):
+                full_response += response
+                message_placeholder.markdown(full_response + " ")
+            message_placeholder.markdown(full_response)
+            st.session_state.debater1_response = full_response
+
+    st.session_state.messages.append({"role": st.session_state.debater1["name"],
+                                      "avatar": st.session_state.debater1["avatar"],
+                                      "content": st.session_state.debater1_response})
+
+    with st.session_state.chat_region:
+        with st.chat_message("user", avatar=st.session_state.debater2["avatar"]):
+            message_placeholder = st.empty()
+            full_response = ""
+            for response in st.session_state.debater2_chat.\
+                    response(st.session_state.debater2_persona.prompt_for_phase(phase,
+                                                                                topic,
+                                                                                st.session_state.debater2_response)):
+                full_response += response
+                message_placeholder.markdown(full_response + " ")
+            message_placeholder.markdown(full_response)
+
+            st.session_state.messages.append({"role": st.session_state.debater2["name"],
+                                              "avatar": st.session_state.debater2["avatar"],
+                                              "content": full_response})
+    st.session_state.response_count += 2
+
+
+def continue_debate(topic):
+    if st.session_state.response_count > 0 and st.session_state.state != 'DONE':
+        col1, col2 = st.columns(2)
+        continue_debate_button = col1.button("Continue Debate",
+                                             type="primary")
+        conclude_debate_button = col2.button("Conclude Debate",
+                                             type="primary")
+
+        if continue_debate_button:
+            generate_response_pair(topic, "response")
+        if conclude_debate_button:
+            st.session_state.state = 'DONE'
+            generate_response_pair(topic, "conclusion")
+
+
+def is_debate_info_complete():
+    return (st.session_state.debater1['name'] != "" and
+            st.session_state.debater2['name'] != "" and
+            st.session_state.debater1['id'] != "" and
+            st.session_state.debater2['id'] != "" and
+            st.session_state.debater1['adjs'] != "" and
+            st.session_state.debater2['adjs'] != "" and
+            st.session_state.topic != "")
+
+
+def main():
+    init()
+
+    # Get debater information from sidebar
+    sidebar_values = sidebar()
+    st.session_state.debater1 = sidebar_values['debater1']
+    st.session_state.debater1["avatar"] = \
+        f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={st.session_state.debater1['name']}"
+    st.session_state.debater2 = sidebar_values['debater2']
+    st.session_state.debater2["avatar"] = \
+        f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={st.session_state.debater2['name']}"
+    st.session_state.topic = sidebar_values['topic']
+    st.session_state.new_debate_button = sidebar_values['new_debate_button']
 
     with st.session_state.chat_region:
         st.text(body='''
-        Welcome to Master Debaters! If you are curious and want to find satisfaction alone 
-        in the privacy of your own room, try our 'baters on your favorite topic. Enjoy!
+        Welcome to Master Debaters! They will debate on the topic of your choice. Enjoy!
         ''')
 
-    if new_debate_button:
-        if (debater1_name == "" or
-                debater2_name == "" or
-                debater1_id == "" or
-                debater2_id == "" or
-                debater1_adjs == "" or
-                debater2_adjs == "" or
-                topic == ""):
-            message(message="Please fill in the debate details!!", avatar_style="bottts")
+    print_debate()
 
+    if st.session_state.new_debate_button:
+        if not is_debate_info_complete():
+            with st.chat_message("assistant"):
+                st.markdown("Please fill in the debate details!!")
         else:
-            st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
-            st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
+            st.session_state.debater1_persona = Persona(st.session_state.debater1['name'],
+                                                           st.session_state.debater1['id'],
+                                                           st.session_state.debater1['adjs'])
+            st.session_state.debater2_persona = Persona(st.session_state.debater2['name'],
+                                                           st.session_state.debater2['id'],
+                                                           st.session_state.debater2['adjs'])
 
-            reset_messages()
-            new_debate(topic)
-    else:
-        print_debate()
+            st.session_state.state = 'DEBATING'
+            new_debate(st.session_state.topic)
+            generate_response_pair(st.session_state.topic, "opening")
 
-    continue_debate(topic)
+    continue_debate(st.session_state.topic)
 
 
 # Press the green button in the gutter to run the script.
