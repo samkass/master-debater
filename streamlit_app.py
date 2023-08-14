@@ -3,13 +3,19 @@ import os
 from random import seed, randint
 
 import streamlit as st
-from langchain.memory import ConversationSummaryBufferMemory
 
 from Persona import Persona
 from StreamingChat import StreamingChat
 
 AVATAR_STYLE = "pixel-art"
 
+# This application simulates a debate between two personas using OpenAI's API.
+# It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
+#
+# TODO:
+# * Create a sample set of personas and debate topics to be able to randomize
+# * Add the ability to upload PDFs about which to debate
+# * Add the ability to specify the URL of a news/information page on which to debate
 
 @st.cache_resource
 def check_and_load_stsecret(name):
