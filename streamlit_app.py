@@ -25,6 +25,7 @@ def init_random():
 def init_state():
     if 'state' not in st.session_state:
         st.session_state.state = 'SETUP'
+        print(f"Session State: {st.session_state.state}")
 
 
 def init_modes():
@@ -139,6 +140,7 @@ def print_debate():
 def new_debate(topic):
     st.session_state.messages = []
     st.session_state.state = 'DEBATING'
+    print(f"Session State: {st.session_state.state}")
 
     st.session_state.debater1_chat = StreamingChat()
     st.session_state.debater2_chat = StreamingChat()
@@ -198,6 +200,7 @@ def continue_debate(topic):
             generate_response_pair(topic, "response")
         if conclude_debate_button:
             st.session_state.state = 'DONE'
+            print(f"Session State: {st.session_state.state}")
             generate_response_pair(topic, "conclusion")
 
 
@@ -256,6 +259,7 @@ def main():
                                                            st.session_state.debater2['adjs'])
 
             st.session_state.state = 'DEBATING'
+            print(f"Session State: {st.session_state.state}")
             new_debate(st.session_state.topic)
             generate_response_pair(st.session_state.topic, "opening")
 
