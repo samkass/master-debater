@@ -18,13 +18,13 @@ def check_and_load_stsecret(name):
 
 
 @st.cache_resource
-def init_state():
-    st.session_state.state = 'SETUP'
-
-
-@st.cache_resource
 def init_random():
     seed()
+
+
+def init_state():
+    if 'state' not in st.session_state:
+        st.session_state.state = 'SETUP'
 
 
 def init_modes():
