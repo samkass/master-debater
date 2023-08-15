@@ -78,7 +78,7 @@ DEBATE_PERSONA_LIST = [
     {'Name': 'Mister Rogers', 'identity': 'a TV Host',
      'adjectives': 'empathetic, kind, caring, concerned with children'},
     {'Name': 'Cletus', 'identity': 'a Slack-jawed Yokel',
-     'adjectives': 'funny, dumb, loves beer, loves guns, loves America'},
+     'adjectives': 'funny, dumb, loves beer, loves guns, has a big family, loves America'},
     {'Name': 'Mario', 'identity': 'a Plumber',
      'adjectives': 'funny, Italian, loves mushrooms, loves turtles, loves Peach'},
     {'Name': 'Doom Guy', 'identity': 'a Marine',

@@ -113,6 +113,12 @@ def sidebar():
             openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
         else:
             openapi_key = ''
+
+        topic = st.text_input(label="Debate Topic:",
+                              value=st.session_state.topic,
+                              placeholder="topic",
+                              disabled=st.session_state.debating)
+
         with st.expander("Debater", expanded=True):
             debater1_name = st.text_input(label="Name",
                                           value=st.session_state.debater1.name,
@@ -151,11 +157,6 @@ def sidebar():
             with st.expander("Settings", expanded=False):
                 st.session_state.model_name = st.selectbox("Model",
                                                            ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
-
-        topic = st.text_input(label="Debate Topic:",
-                              value=st.session_state.topic,
-                              placeholder="topic",
-                              disabled=st.session_state.debating)
 
     st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
     st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
