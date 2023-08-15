@@ -1,11 +1,24 @@
+import random
+import string
+
+import Possibilities
+
+AVATAR_STYLE = "pixel-art"
+
+
+def create_random_persona():
+    persona = Possibilities.DebateRandomizer.get_persona()
+    return Persona(persona["Name"], persona["identity"], persona["adjectives"])
 
 
 class Persona:
-    def __init__(self, name, identity, adjectives, emoji="🙂"):
+    def __init__(self, name="", identity="", adjectives=""):
         self.name = name
         self.identity = identity
         self.adjectives = adjectives
-        self.emoji = emoji
+        # set seed to either name (if it's not None or blank) or a random letter
+        seed = name if name is not None and name != "" else random.choice(string.ascii_letters)
+        self.avatar = f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={seed}"
 
     def prompt_for_phase(self, phase, topic, prompt):
         if phase == "opening":

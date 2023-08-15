@@ -8,7 +8,7 @@ It is implemented with LangChain, Streamlit, and OpenAI.
 ## Installation
 1. Clone the repository and cd into the directory
 2. Install the dependencies with `pip install -r requirements.txt`
-3. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and fill in the OpenAI API key
+3. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and fill in the OpenAI API key. (If you do not do this, it will prompt for the OpenAI Key in the sidebar.)
 4. Run the app with `streamlit run streamlit_app.py`
 5. Navigate to the URL provided by Streamlit
 

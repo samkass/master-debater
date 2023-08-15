@@ -5,10 +5,9 @@ from time import sleep
 
 import streamlit as st
 
-from Persona import Persona
+from Persona import Persona, create_random_persona
+from Possibilities import DebateRandomizer
 from StreamingChat import StreamingChat
-
-AVATAR_STYLE = "pixel-art"
 
 # This application simulates a debate between two personas using OpenAI's API.
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
@@ -72,22 +71,30 @@ def init_modes():
     logging.warning(f"USE_STREAMING = {USE_STREAMING}")
 
 
+def init_debaters():
+    if 'debater1' not in st.session_state:
+        st.session_state.debater1 = create_random_persona()
+    if 'debater2' not in st.session_state:
+        st.session_state.debater2 = create_random_persona()
+    if 'topic' not in st.session_state:
+        st.session_state.topic = DebateRandomizer.get_topic()
+
+
 def init():
     st.set_page_config(
-        page_title="Master Debaters",
+        page_title="Master-Debaters",
         page_icon="🤷‍"
     )
 
     init_random()
     init_state()
     init_modes()
+    init_debaters()
 
     if "model_name" not in st.session_state:
         st.session_state.model_name = "gpt-3.5-turbo"
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "response_count" not in st.session_state:
-        st.session_state.response_count = 0
     if "response" not in st.session_state:
         st.session_state.response = ""
 
@@ -97,45 +104,62 @@ def init():
 
 def sidebar():
     with st.sidebar:
+        randomize = st.button("Randomize", disabled=st.session_state.debating)
+        if randomize:
+            st.session_state.debater1 = create_random_persona()
+            st.session_state.debater2 = create_random_persona()
+            st.session_state.topic = DebateRandomizer.get_topic()
+
         if 'OPENAI_API_KEY' not in st.secrets:
             openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
         else:
             openapi_key = ''
         with st.expander("Debater", expanded=True):
-            debater1_name = st.text_input(label="Name", value="Bo", placeholder="Name")
-            debater1_id = st.text_input(label="Identity", value="a Conservative", placeholder="Short Description")
+            debater1_name = st.text_input(label="Name",
+                                          value=st.session_state.debater1.name,
+                                          placeholder="Name",
+                                          key=f"{randint(0, 100000)}",
+                                          disabled=st.session_state.debating)
+            debater1_id = st.text_input(label="Identity",
+                                        value=st.session_state.debater1.identity,
+                                        placeholder="Short Description",
+                                        key=f"{randint(0, 100000)}",
+                                        disabled=st.session_state.debating)
             debater1_adjs = st.text_input(label="Adjectives",
+                                          value=st.session_state.debater1.adjectives,
                                           placeholder="Comma-separated words",
-                                          value="ideological, serious, conservative, religious, Christian, pro-life")
+                                          key=f"{randint(0, 100000)}",
+                                          disabled=st.session_state.debating)
 
         with st.expander("Opponent", expanded=True):
-            debater2_name = st.text_input(label="Name", value="Luke", placeholder="Name")
-            debater2_id = st.text_input(label="Identity", value="a Progressive", placeholder="Short Description")
+            debater2_name = st.text_input(label="Name",
+                                          value=st.session_state.debater2.name,
+                                          placeholder="Name",
+                                          key=f"{randint(0, 100000)}",
+                                          disabled=st.session_state.debating)
+            debater2_id = st.text_input(label="Identity",
+                                        value=st.session_state.debater2.identity,
+                                        placeholder="Short Description",
+                                        key=f"{randint(0, 100000)}",
+                                        disabled=st.session_state.debating)
             debater2_adjs = st.text_input(label="Adjectives",
+                                          value=st.session_state.debater2.adjectives,
                                           placeholder="Comma-separated words",
-                                          value="pragmatic, empathetic, liberal, nonreligious, anti-gun, pro-choice")
+                                          key=f"{randint(0, 100000)}",
+                                          disabled=st.session_state.debating)
 
         if SHOW_SETTINGS:
             with st.expander("Settings", expanded=False):
                 st.session_state.model_name = st.selectbox("Model",
                                                            ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
 
-        topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
+        topic = st.text_input(label="Debate Topic:",
+                              value=st.session_state.topic,
+                              placeholder="topic",
+                              disabled=st.session_state.debating)
 
-    st.session_state.debater1 = {
-            'name': debater1_name,
-            'id': debater1_id,
-            'adjs': debater1_adjs
-        }
-    st.session_state.debater1["avatar"] = \
-        f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={st.session_state.debater1['name']}"
-    st.session_state.debater2 = {
-            'name': debater2_name,
-            'id': debater2_id,
-            'adjs': debater2_adjs
-        }
-    st.session_state.debater2["avatar"] = \
-        f"https://api.dicebear.com/5.x/{AVATAR_STYLE}/svg?seed={st.session_state.debater2['name']}"
+    st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
+    st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
     st.session_state.topic = topic
 
     set_openapi_key(openapi_key)
@@ -147,13 +171,6 @@ def new_debate():
     st.session_state.debater1_chat = StreamingChat()
     st.session_state.debater2_chat = StreamingChat()
 
-    st.session_state.debater1_persona = Persona(st.session_state.debater1['name'],
-                                                st.session_state.debater1['id'],
-                                                st.session_state.debater1['adjs'])
-    st.session_state.debater2_persona = Persona(st.session_state.debater2['name'],
-                                                st.session_state.debater2['id'],
-                                                st.session_state.debater2['adjs'])
-
     st.session_state.debater1_response = ""
     st.session_state.debater2_response = ""
 
@@ -164,59 +181,55 @@ def print_debate():
             st.markdown(msg["content"])
 
 
-def generate_response_pair(topic, phase):
-    with st.chat_message("user", avatar=st.session_state.debater1["avatar"]):
+def chat_response_generator(topic, phase, chat, persona, opponent_response):
+    if TEST_MODE:
+        chat_response = ChatTestIterator()
+    else:
+        chat_response = chat.response(persona.prompt_for_phase(phase,
+                                                               topic,
+                                                               opponent_response))
+    return chat_response
+
+
+def generate_response(topic, phase, chat, persona, opponent_response):
+    with st.chat_message("user", avatar=persona.avatar):
         message_placeholder = st.empty()
         full_response = ""
-        if TEST_MODE:
-            chat_response_generator = ChatTestIterator()
-        else:
-            chat = st.session_state.debater1_chat
-            persona = st.session_state.debater1_persona
-            chat_response_generator = chat.response(persona.prompt_for_phase(phase,
-                                                                             topic,
-                                                                             st.session_state.debater2_response))
-        for response in chat_response_generator:
+        chat_responses = chat_response_generator(topic, phase, chat, persona, opponent_response)
+        for response in chat_responses:
             full_response += response
             message_placeholder.markdown(full_response + " ")
         message_placeholder.markdown(full_response)
-        st.session_state.debater1_response = full_response
+    return full_response
 
-    st.session_state.messages.append({"role": st.session_state.debater1["name"],
-                                      "avatar": st.session_state.debater1["avatar"],
+
+def generate_response_pair(topic, phase):
+    st.session_state.debater1_response = generate_response(topic,
+                                                           phase,
+                                                           st.session_state.debater1_chat,
+                                                           st.session_state.debater1,
+                                                           st.session_state.debater2_response)
+    st.session_state.messages.append({"role": st.session_state.debater1.name,
+                                      "avatar": st.session_state.debater1.avatar,
                                       "content": st.session_state.debater1_response})
 
-    with st.chat_message("user", avatar=st.session_state.debater2["avatar"]):
-        message_placeholder = st.empty()
-        full_response = ""
-        if TEST_MODE:
-            chat_response_generator = ChatTestIterator()
-        else:
-            chat = st.session_state.debater2_chat
-            persona = st.session_state.debater2_persona
-            chat_response_generator = chat.response(persona.prompt_for_phase(phase,
-                                                                             topic,
-                                                                             st.session_state.debater1_response))
-        for response in chat_response_generator:
-            full_response += response
-            message_placeholder.markdown(full_response + " ")
-        message_placeholder.markdown(full_response)
-        st.session_state.debater2_response = full_response
-
-    st.session_state.messages.append({"role": st.session_state.debater2["name"],
-                                      "avatar": st.session_state.debater2["avatar"],
-                                      "content": full_response})
-
-    st.session_state.response_count += 2
+    st.session_state.debater2_response = generate_response(topic,
+                                                           phase,
+                                                           st.session_state.debater2_chat,
+                                                           st.session_state.debater2,
+                                                           st.session_state.debater1_response)
+    st.session_state.messages.append({"role": st.session_state.debater2.name,
+                                      "avatar": st.session_state.debater2.avatar,
+                                      "content": st.session_state.debater2_response})
 
 
 def is_debate_info_complete():
-    return (st.session_state.debater1['name'] != "" and
-            st.session_state.debater2['name'] != "" and
-            st.session_state.debater1['id'] != "" and
-            st.session_state.debater2['id'] != "" and
-            st.session_state.debater1['adjs'] != "" and
-            st.session_state.debater2['adjs'] != "" and
+    return (st.session_state.debater1.name != "" and
+            st.session_state.debater2.name != "" and
+            st.session_state.debater1.identity != "" and
+            st.session_state.debater2.identity != "" and
+            st.session_state.debater1.adjectives != "" and
+            st.session_state.debater2.adjectives != "" and
             st.session_state.topic != "")
 
 
@@ -245,9 +258,9 @@ def main():
         with appendix.container():
             with st.container():
                 col1, col2, col3 = st.columns(3)
-                new_chat = col1.button("New Chat", disabled=st.session_state.debating)
-                continue_chat = col2.button("Continue Chat", disabled=not st.session_state.debating)
-                conclude_chat = col3.button("Conclude Chat", disabled=not st.session_state.debating)
+                new_chat = col1.button("New Debate", disabled=st.session_state.debating)
+                continue_chat = col2.button("Continue Debate", disabled=not st.session_state.debating)
+                conclude_chat = col3.button("Conclude Debate", disabled=not st.session_state.debating)
 
     if new_chat:
         if not is_debate_info_complete():
