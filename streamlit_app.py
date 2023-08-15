@@ -13,7 +13,6 @@ from StreamingChat import StreamingChat
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
 #
 # TODO:
-# * Create a sample set of personas and debate topics to be able to randomize
 # * Add the ability to upload PDFs about which to debate
 # * Add the ability to specify the URL of a news/information page on which to debate
 
