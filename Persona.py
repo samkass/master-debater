@@ -35,6 +35,7 @@ class Persona:
         You are someone who could be described with the following adjectives: {self.adjectives}.
         But try not to use the adjectives themselves in your reply.
         Introduce yourself by name.
+        Take a side on the debate topic.
         Limit your opening statement to 2 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
         Reply as if you were the persona, without any editorializing.

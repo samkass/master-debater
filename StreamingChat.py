@@ -103,7 +103,7 @@ class ResponseStream(BaseCallbackHandler):
 
     def run_chain(self):
         try:
-            run_async_function_sync(self.chain.arun, self.prompt)
+            run_async_function_sync(self.chain.arun, input=self.prompt)
         except Exception as e:
             self.queue.put("Error calling OpenAPI. Please validate the key is correct.")
 

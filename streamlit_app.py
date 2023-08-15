@@ -279,7 +279,7 @@ def main():
 
     if continue_chat:
         with appendix.container():
-            generate_response_pair(st.session_state.topic, "responding")
+            generate_response_pair(st.session_state.topic, "response")
         st.experimental_rerun()
 
     if conclude_chat:
