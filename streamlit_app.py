@@ -17,6 +17,7 @@ AVATAR_STYLE = "pixel-art"
 # * Add the ability to upload PDFs about which to debate
 # * Add the ability to specify the URL of a news/information page on which to debate
 
+
 @st.cache_resource
 def check_and_load_stsecret(name):
     if name in st.secrets and st.secrets[name] != "":
@@ -29,9 +30,11 @@ def init_random():
 
 
 def init_state():
-    if 'state' not in st.session_state:
-        st.session_state.state = 'SETUP'
-        print(f"Session State: {st.session_state.state}")
+    if 'is_debating' not in st.session_state:
+        st.session_state.is_debating = False
+        print(f"Session State: {st.session_state.is_debating}")
+    if 'generate_next' not in st.session_state:
+        st.session_state.generate_next = None
 
 
 def init_modes():
@@ -89,12 +92,16 @@ def init():
     if "response" not in st.session_state:
         st.session_state.response = ""
 
-    st.session_state.chat_region = st.container()
+    st.session_state.chat_region = st.empty()
+    st.session_state.chat_history = st.container()
 
 
 def sidebar():
     with st.sidebar:
-        openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
+        if 'OPENAI_API_KEY' not in st.secrets:
+            openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
+        else:
+            openapi_key = ''
         with st.expander("Debater", expanded=True):
             debater1_name = st.text_input(label="Name", value="Bo", placeholder="Name")
             debater1_id = st.text_input(label="Identity", value="a Conservative", placeholder="Short Description")
@@ -116,7 +123,10 @@ def sidebar():
 
         topic = st.text_input(label="Debate Topic:", value="the debt ceiling", placeholder="topic")
 
-        new_debate_button = st.button("New Debate!", type="primary")
+        new_debate_button = st.button("New Debate!",
+                                      type="primary",
+                                      key="New Debate Button",
+                                      disabled=st.session_state.is_debating)
 
     return {
         'openapi_key': openapi_key,
@@ -135,18 +145,15 @@ def sidebar():
     }
 
 
-def print_debate():
-    if st.session_state.state == 'DEBATING':
-        with st.session_state.chat_region:
-            for i, msg in enumerate(st.session_state.messages):
-                with st.chat_message(msg["role"], avatar=msg["avatar"]):
-                    st.markdown(msg["content"])
-
-
 def new_debate(topic):
     st.session_state.messages = []
-    st.session_state.state = 'DEBATING'
-    print(f"Session State: {st.session_state.state}")
+    st.session_state.chat_history = st.container()
+    with st.session_state.chat_region.container(): #TODO: Make this blank out the old debate somehow!!!!
+        with st.session_state.chat_history:
+            st.empty()
+
+    st.session_state.is_debating = True
+    print(f"Session State: {st.session_state.is_debating}")
 
     st.session_state.debater1_chat = StreamingChat()
     st.session_state.debater2_chat = StreamingChat()
@@ -155,15 +162,22 @@ def new_debate(topic):
     st.session_state.debater2_response = ""
 
 
+def print_debate():
+    with st.session_state.chat_history:
+        for i, msg in enumerate(st.session_state.messages):
+            with st.chat_message(msg["role"], avatar=msg["avatar"]):
+                st.markdown(msg["content"])
+
+
 def generate_response_pair(topic, phase):
     st.session_state.debate_id = randint(10000000, 100000000)
 
     st.session_state.debater1_response = ""
-    with st.session_state.chat_region:
+    with st.session_state.chat_history:
         with st.chat_message("user", avatar=st.session_state.debater1["avatar"]):
             message_placeholder = st.empty()
             full_response = ""
-            for response in st.session_state.debater1_chat.\
+            for response in st.session_state.debater1_chat. \
                     response(st.session_state.debater1_persona.prompt_for_phase(phase,
                                                                                 topic,
                                                                                 st.session_state.debater2_response)):
@@ -176,26 +190,28 @@ def generate_response_pair(topic, phase):
                                       "avatar": st.session_state.debater1["avatar"],
                                       "content": st.session_state.debater1_response})
 
-    with st.session_state.chat_region:
+    with st.session_state.chat_history:
         with st.chat_message("user", avatar=st.session_state.debater2["avatar"]):
             message_placeholder = st.empty()
             full_response = ""
-            for response in st.session_state.debater2_chat.\
+            for response in st.session_state.debater2_chat. \
                     response(st.session_state.debater2_persona.prompt_for_phase(phase,
                                                                                 topic,
-                                                                                st.session_state.debater2_response)):
+                                                                                st.session_state.debater1_response)):
                 full_response += response
                 message_placeholder.markdown(full_response + " ")
             message_placeholder.markdown(full_response)
+            st.session_state.debater2_response = full_response
 
-            st.session_state.messages.append({"role": st.session_state.debater2["name"],
-                                              "avatar": st.session_state.debater2["avatar"],
-                                              "content": full_response})
+    st.session_state.messages.append({"role": st.session_state.debater2["name"],
+                                      "avatar": st.session_state.debater2["avatar"],
+                                      "content": full_response})
+
     st.session_state.response_count += 2
 
 
 def continue_debate(topic):
-    if st.session_state.response_count > 0 and st.session_state.state != 'DONE':
+    if st.session_state.response_count > 0 and st.session_state.is_debating:
         col1, col2 = st.columns(2)
         continue_debate_button = col1.button("Continue Debate",
                                              type="primary")
@@ -203,11 +219,13 @@ def continue_debate(topic):
                                              type="primary")
 
         if continue_debate_button:
-            generate_response_pair(topic, "response")
+            st.session_state.generate_next = "response"
+            st.experimental_rerun()
         if conclude_debate_button:
-            st.session_state.state = 'DONE'
-            print(f"Session State: {st.session_state.state}")
-            generate_response_pair(topic, "conclusion")
+            st.session_state.is_debating = False
+            print(f"Session State: {st.session_state.is_debating}")
+            st.session_state.generate_next = "conclusion"
+            st.experimental_rerun()
 
 
 def is_debate_info_complete():
@@ -222,7 +240,7 @@ def is_debate_info_complete():
 
 def set_openapi_key(key):
     if key != '':
-        if key == KASS_KEY_PASS and os.getenv("OPENAI_API_KEY") is not None:
+        if key == KASS_KEY_PASS and os.getenv("KASS_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("KASS_KEY")
         else:
             os.environ["OPENAI_API_KEY"] = key
@@ -243,19 +261,20 @@ def main():
     st.session_state.topic = sidebar_values['topic']
     st.session_state.new_debate_button = sidebar_values['new_debate_button']
 
-    with st.session_state.chat_region:
+    with st.session_state.chat_history:
         st.text(body='''
         Welcome to Master Debaters! They will debate on the topic of your choice. Enjoy!
         ''')
 
     set_openapi_key(openapi_key)
 
-    print_debate()
-
     if st.session_state.new_debate_button:
         if not is_debate_info_complete():
             with st.chat_message("assistant"):
                 st.markdown("Please fill in the debate details!!")
+        elif not os.getenv("OPENAI_API_KEY"):
+            with st.chat_message("assistant"):
+                st.markdown("Please set your OpenAI API key.")
         else:
             st.session_state.debater1_persona = Persona(st.session_state.debater1['name'],
                                                            st.session_state.debater1['id'],
@@ -264,10 +283,18 @@ def main():
                                                            st.session_state.debater2['id'],
                                                            st.session_state.debater2['adjs'])
 
-            st.session_state.state = 'DEBATING'
-            print(f"Session State: {st.session_state.state}")
             new_debate(st.session_state.topic)
-            generate_response_pair(st.session_state.topic, "opening")
+            st.session_state.generate_next = "clear_then_opening"
+            st.experimental_rerun()
+
+    print_debate()
+    if st.session_state.generate_next == "clear_then_opening":
+        st.session_state.generate_next = "opening"
+        st.experimental_rerun()
+    elif st.session_state.generate_next is not None:
+        generate_response_pair(st.session_state.topic, st.session_state.generate_next)
+        st.session_state.generate_next = None
+        st.experimental_rerun()
 
     continue_debate(st.session_state.topic)
 

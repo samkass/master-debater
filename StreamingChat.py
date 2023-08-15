@@ -2,18 +2,31 @@ import asyncio
 import queue
 import threading
 
-from langchain import ConversationChain
+from langchain import ConversationChain, PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.schema import LLMResult
 
 
+DEBATE_TEMPLATE = """The following is a respectful debate between an Opponent and me. Both parties are opinionated and provide lots of specific details from their context. If either side does not have information on a fact, they avoid that topic.
+    
+Current conversation:
+{history}
+Opponent: {input}
+Me:"""
+
+
 class StreamingChat:
     MODEL_NAME = "gpt-3.5-turbo"
     TEMPERATURE = 0.9
 
+    def system_prompt_template(self):
+        return PromptTemplate(input_variables=["history", "input"],
+                              template=DEBATE_TEMPLATE)
+
     def __init__(self, model_name=MODEL_NAME, temperature=TEMPERATURE):
+        print("Initializing StreamingChat")
         self.callback_handler = IndirectCallbackHandler()
         self.llm = ChatOpenAI(model_name=model_name,
                               temperature=temperature,
@@ -22,11 +35,14 @@ class StreamingChat:
         self.conversation = ConversationChain(
             llm=self.llm,
             verbose=True,
+            prompt=self.system_prompt_template(),
             memory=ConversationSummaryBufferMemory(
                 llm=self.llm,
                 max_token_limit=1000
             )
         )
+        self.conversation.memory.ai_prefix = "Me"
+        self.conversation.memory.human_prefix = "Opponent"
 
     def response(self, prompt):
         stream = ResponseStream(prompt, self.conversation, self.callback_handler)
@@ -86,7 +102,10 @@ class ResponseStream(BaseCallbackHandler):
             yield chunk
 
     def run_chain(self):
-        run_async_function_sync(self.chain.arun, self.prompt)
+        try:
+            run_async_function_sync(self.chain.arun, self.prompt)
+        except Exception as e:
+            self.queue.put("Error calling OpenAPI. Please validate the key is correct.")
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.queue.put(token)
