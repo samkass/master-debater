@@ -23,11 +23,6 @@ def check_and_load_stsecret(name):
         os.environ.setdefault(name, st.secrets[name])
 
 
-@st.cache_resource
-def init_random():
-    seed()
-
-
 def init_state():
     if 'debating' not in st.session_state:
         st.session_state.debating = False
@@ -93,7 +88,6 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         }
     )
 
-    init_random()
     init_state()
     init_modes()
     init_debaters()
@@ -105,21 +99,9 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
     if "response" not in st.session_state:
         st.session_state.response = ""
 
-    st.session_state.chat_region = st.empty()
-    st.session_state.chat_history = st.container()
-
 
 def sidebar():
     with st.sidebar:
-        with st.container():
-            col1, col2 = st.columns(2)
-            col1.markdown("Enter your own or ")
-            randomize = col2.button("Randomize", disabled=st.session_state.debating)
-            if randomize:
-                st.session_state.debater1 = create_random_persona()
-                st.session_state.debater2 = create_random_persona()
-                st.session_state.topic = DebateRandomizer.get_topic()
-
         if 'OPENAI_API_KEY' not in st.secrets:
             openapi_key = st.text_input(label="OpenAI API Key",
                                         value="",
@@ -128,7 +110,19 @@ def sidebar():
         else:
             openapi_key = ''
 
-        topic = st.text_input(label="Debate Topic:",
+        st.divider()
+        with st.container():
+            col1, col2 = st.columns(2)
+            col1.markdown("Enter debate info or ")
+            randomize = col2.button("Randomize", disabled=st.session_state.debating)
+            if randomize:
+                st.session_state.debater1 = create_random_persona()
+                st.session_state.debater2 = create_random_persona()
+                while st.session_state.debater2.name == st.session_state.debater1.name:
+                    st.session_state.debater2 = create_random_persona()
+                st.session_state.topic = DebateRandomizer.get_topic()
+
+        topic = st.text_input(label="Debate Topic",
                               value=st.session_state.topic,
                               placeholder="topic",
                               disabled=st.session_state.debating)
@@ -260,7 +254,7 @@ def set_openapi_key(key):
                 key == os.getenv("KASS_KEY_PASS") and\
                 os.getenv("KASS_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("KASS_KEY")
-        if os.getenv("CITI_KEY_PASS") is not None and\
+        elif os.getenv("CITI_KEY_PASS") is not None and\
                 key == os.getenv("CITI_KEY_PASS") and\
                 os.getenv("CITI_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("CITI_KEY")
