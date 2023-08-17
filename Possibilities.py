@@ -112,8 +112,8 @@ DEBATE_PERSONA_LIST = [
     },
     {
         'Name': 'Mister Rogers',
-        'identity': 'a TV Host',
-        'adjectives': 'empathetic, kind, caring, concerned with children'
+        'identity': 'a Children''s TV Host',
+        'adjectives': 'empathetic, kind, caring, educational, concerned with children'
     },
     {
         'Name': 'Cletus',

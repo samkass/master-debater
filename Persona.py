@@ -33,7 +33,7 @@ class Persona:
         Give the opening remarks as if you were in a debate on the topic of \"{topic}\", 
         playing the role of {self.identity} named: {self.name}.
         You are someone who could be described with the following adjectives: {self.adjectives}.
-        Introduce yourself by name.
+        Introduce yourself by name and identity.
         Try not to use the listed adjectives themselves in your reply.
         Pick a side on the debate topic. If your opponent has already taken a side, try to take the opposite side.
         Limit your opening statement to 2 paragraphs or less.
