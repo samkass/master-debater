@@ -33,9 +33,9 @@ class Persona:
         Give the opening remarks as if you were in a debate on the topic of \"{topic}\", 
         playing the role of {self.identity} named: {self.name}.
         You are someone who could be described with the following adjectives: {self.adjectives}.
-        But try not to use the adjectives themselves in your reply.
         Introduce yourself by name.
-        Take a side on the debate topic.
+        Try not to use the listed adjectives themselves in your reply.
+        Pick a side on the debate topic. If your opponent has already taken a side, try to take the opposite side.
         Limit your opening statement to 2 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
         Reply as if you were the persona, without any editorializing.
@@ -50,7 +50,7 @@ class Persona:
 
     def response_prompt(self, topic, prompt=""):
         return f'''
-        Continue to debate as {self.name} on the topic of {topic}. 
+        Continue to debate as {self.name} on the topic of {topic}, continuing to argue the same side of the debate. 
         Respond to the following statement, using counter-arguments and giving 
         specific examples and citing statistics when possible: {prompt}
         Try to limit the length of your statement to 3 paragraphs or less.
@@ -59,6 +59,7 @@ class Persona:
 
     def conclusion_prompt(self, topic="", prompt=""):
         return f'''
-        Conclude the debate, generating closing remarks as \"{self.name}\" on the topic of {topic}.
+        Conclude the debate, generating closing remarks as \"{self.name}\" on the topic of {topic}
+         summarizing your side of the debate.
         Try to limit the length of your statement to only a couple of sentences.
         '''

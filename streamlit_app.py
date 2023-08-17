@@ -35,39 +35,42 @@ def init_state():
 
 
 def init_modes():
-    global KASS_KEY_PASS
-    global TEST_MODE
-    global SHOW_SETTINGS
-    global USE_STREAMING
-
+    # Load keys from secrets and put into env variables
     check_and_load_stsecret("OPENAI_API_KEY")
     check_and_load_stsecret("OPENAI_ORG_ID")
     check_and_load_stsecret("KASS_KEY")
     check_and_load_stsecret("KASS_KEY_PASS")
+    check_and_load_stsecret("CITI_KEY")
+    check_and_load_stsecret("CITI_KEY_PASS")
 
-    if os.getenv("KASS_KEY_PASS") != "":
-        KASS_KEY_PASS = os.getenv("KASS_KEY_PASS")
-
+    # Load settings from secrets and put into env variables
     check_and_load_stsecret("TEST_MODE")
     check_and_load_stsecret("SHOW_SETTINGS")
     check_and_load_stsecret("USE_STREAMING")
 
+    # Also put settings into session state
     if os.getenv("TEST_MODE") != "":
-        TEST_MODE = os.getenv("TEST_MODE") == "True"
+        test_mode = os.getenv("TEST_MODE") == "True"
     else:
-        TEST_MODE = True
+        test_mode = True
     if os.getenv("SHOW_SETTINGS") != "":
-        SHOW_SETTINGS = os.getenv("SHOW_SETTINGS") == "True"
+        show_settings = os.getenv("SHOW_SETTINGS") == "True"
     else:
-        SHOW_SETTINGS = False
+        show_settings = False
     if os.getenv("USE_STREAMING") != "":
-        USE_STREAMING = os.getenv("USE_STREAMING") == "True"
+        use_streaming = os.getenv("USE_STREAMING") == "True"
     else:
-        USE_STREAMING = False
+        use_streaming = False
 
-    logging.warning(f"TEST_MODE = {TEST_MODE}")
-    logging.warning(f"SHOW_SETTINGS = {SHOW_SETTINGS}")
-    logging.warning(f"USE_STREAMING = {USE_STREAMING}")
+    st.session_state.settings = {
+        "test_mode": test_mode,
+        "show_settings": show_settings,
+        "use_streaming": use_streaming
+    }
+
+    logging.warning(f"TEST_MODE = {st.session_state.settings['test_mode']}")
+    logging.warning(f"SHOW_SETTINGS = {st.session_state.settings['show_settings']}")
+    logging.warning(f"USE_STREAMING = {st.session_state.settings['use_streaming']}")
 
 
 def init_debaters():
@@ -103,14 +106,20 @@ def init():
 
 def sidebar():
     with st.sidebar:
-        randomize = st.button("Randomize", disabled=st.session_state.debating)
-        if randomize:
-            st.session_state.debater1 = create_random_persona()
-            st.session_state.debater2 = create_random_persona()
-            st.session_state.topic = DebateRandomizer.get_topic()
+        with st.container():
+            col1, col2 = st.columns(2)
+            col1.markdown("Enter your own or ")
+            randomize = col2.button("Randomize", disabled=st.session_state.debating)
+            if randomize:
+                st.session_state.debater1 = create_random_persona()
+                st.session_state.debater2 = create_random_persona()
+                st.session_state.topic = DebateRandomizer.get_topic()
 
         if 'OPENAI_API_KEY' not in st.secrets:
-            openapi_key = st.text_input(label="OpenAI API Key", value="", type="password")
+            openapi_key = st.text_input(label="OpenAI API Key",
+                                        value="",
+                                        type="password",
+                                        help="(not stored or logged; passed directly to the OpenAI API)")
         else:
             openapi_key = ''
 
@@ -124,36 +133,43 @@ def sidebar():
                                           value=st.session_state.debater1.name,
                                           placeholder="Name",
                                           key=f"{randint(0, 100000)}",
-                                          disabled=st.session_state.debating)
+                                          disabled=st.session_state.debating,
+                                          help="Can be a real person or completely fictional")
             debater1_id = st.text_input(label="Identity",
                                         value=st.session_state.debater1.identity,
                                         placeholder="Short Description",
                                         key=f"{randint(0, 100000)}",
-                                        disabled=st.session_state.debating)
+                                        disabled=st.session_state.debating,
+                                        help=f"A couple words, for example, 'a football player'")
             debater1_adjs = st.text_input(label="Adjectives",
                                           value=st.session_state.debater1.adjectives,
                                           placeholder="Comma-separated words",
                                           key=f"{randint(0, 100000)}",
-                                          disabled=st.session_state.debating)
+                                          disabled=st.session_state.debating,
+                                          help="A couple of adjectives, for example, 'smart, funny, charming'"
+                                          )
 
         with st.expander("Opponent", expanded=True):
             debater2_name = st.text_input(label="Name",
                                           value=st.session_state.debater2.name,
                                           placeholder="Name",
                                           key=f"{randint(0, 100000)}",
-                                          disabled=st.session_state.debating)
+                                          disabled=st.session_state.debating,
+                                          help="Can be a real person or completely fictional")
             debater2_id = st.text_input(label="Identity",
                                         value=st.session_state.debater2.identity,
                                         placeholder="Short Description",
                                         key=f"{randint(0, 100000)}",
-                                        disabled=st.session_state.debating)
+                                        disabled=st.session_state.debating,
+                                        help=f"A couple words, for example, 'a cheerleader'")
             debater2_adjs = st.text_input(label="Adjectives",
                                           value=st.session_state.debater2.adjectives,
                                           placeholder="Comma-separated words",
                                           key=f"{randint(0, 100000)}",
-                                          disabled=st.session_state.debating)
+                                          disabled=st.session_state.debating,
+                                          help="A couple of adjectives, for example, 'smart, funny, charming'")
 
-        if SHOW_SETTINGS:
+        if st.session_state.settings["show_settings"]:
             with st.expander("Settings", expanded=False):
                 st.session_state.model_name = st.selectbox("Model",
                                                            ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
@@ -182,7 +198,7 @@ def print_debate():
 
 
 def chat_response_generator(topic, phase, chat, persona, opponent_response):
-    if TEST_MODE:
+    if st.session_state.settings['test_mode']:
         chat_response = ChatTestIterator()
     else:
         chat_response = chat.response(persona.prompt_for_phase(phase,
@@ -235,8 +251,14 @@ def is_debate_info_complete():
 
 def set_openapi_key(key):
     if key != '':
-        if key == KASS_KEY_PASS and os.getenv("KASS_KEY") is not None:
+        if os.getenv("KASS_KEY_PASS") is not None and\
+                key == os.getenv("KASS_KEY_PASS") and\
+                os.getenv("KASS_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("KASS_KEY")
+        if os.getenv("CITI_KEY_PASS") is not None and\
+                key == os.getenv("CITI_KEY_PASS") and\
+                os.getenv("CITI_KEY") is not None:
+            os.environ["OPENAI_API_KEY"] = os.getenv("CITI_KEY")
         else:
             os.environ["OPENAI_API_KEY"] = key
 
