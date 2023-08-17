@@ -106,7 +106,7 @@ def sidebar():
             openapi_key = st.text_input(label="OpenAI API Key",
                                         value="",
                                         type="password",
-                                        help="(not stored or logged; passed directly to the OpenAI API)")
+                                        help="Not stored to disk or logged")
         else:
             openapi_key = ''
 
