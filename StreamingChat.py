@@ -38,11 +38,11 @@ class StreamingChat:
             prompt=self.system_prompt_template(),
             memory=ConversationSummaryBufferMemory(
                 llm=self.llm,
-                max_token_limit=1000
+                max_token_limit=1000,
+                ai_prefix="Me",
+                human_prefix="Opponent",
             )
         )
-        self.conversation.memory.ai_prefix = "Me"
-        self.conversation.memory.human_prefix = "Opponent"
 
     def response(self, prompt):
         stream = ResponseStream(prompt, self.conversation, self.callback_handler)
@@ -68,19 +68,6 @@ class IndirectCallbackHandler(BaseCallbackHandler):
             callback.on_llm_end(response, **kwargs)
 
 
-def run_async_function_sync(async_func, *args, **kwargs):
-    new_loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(new_loop)
-
-    async def inner_async_func():
-        return await async_func(*args, **kwargs)
-
-    try:
-        return new_loop.run_until_complete(inner_async_func())
-    finally:
-        new_loop.close()
-
-
 class ResponseStream(BaseCallbackHandler):
     def __init__(self, prompt: str, chain: ConversationChain, callback_handler: IndirectCallbackHandler):
         self.prompt = prompt
@@ -103,7 +90,7 @@ class ResponseStream(BaseCallbackHandler):
 
     def run_chain(self):
         try:
-            run_async_function_sync(self.chain.arun, input=self.prompt)
+            self.chain.run(self.prompt)
         except Exception as e:
             self.queue.put("Error calling OpenAPI. Please validate the key is correct.")
 
