@@ -3,6 +3,7 @@ import threading
 
 from langchain import ConversationChain, PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains.base import Chain
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.schema import LLMResult
@@ -88,7 +89,7 @@ class IndirectCallbackHandler(BaseCallbackHandler):
 
 
 class ResponseStream(BaseCallbackHandler):
-    def __init__(self, prompt: str, chain: ConversationChain, callback_handler: IndirectCallbackHandler):
+    def __init__(self, prompt: str, chain: Chain, callback_handler: IndirectCallbackHandler):
         self.prompt = prompt
         self.chain = chain
         self.conversation_callback_handler = callback_handler
