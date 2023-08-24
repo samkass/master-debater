@@ -1,17 +1,6 @@
-import random
 
 
-class DebateRandomizer:
-    @staticmethod
-    def get_topic():
-        return random.choice(DEBATE_TOPIC_LIST)
-
-    @staticmethod
-    def get_persona():
-        return random.choice(DEBATE_PERSONA_LIST)
-
-
-DEBATE_TOPIC_LIST = [
+BIG_DEBATE_TOPIC_LIST = [
     "The Debt Ceiling",
     "Universal Basic Income",
     "Mandatory Vaccinations",
@@ -64,7 +53,7 @@ DEBATE_TOPIC_LIST = [
     "Nuclear Power: Safe or Dangerous?",
 ]
 
-DEBATE_PERSONA_LIST = [
+BIG_DEBATE_PERSONA_LIST = [
     {
         'Name': 'Bo',
         'identity': 'a Conservative',

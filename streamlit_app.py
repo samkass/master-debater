@@ -6,16 +6,13 @@ from time import sleep
 import streamlit as st
 from PyPDF2 import PdfReader
 
-from Persona import Persona, create_random_persona
-from Possibilities import DebateRandomizer
+from ParleyPossibilities import PARLEY_DEBATE_TOPIC_LIST, PARLEY_DEBATE_PERSONA_LIST
+from Persona import Persona
+from DebateRandomizer import DebateRandomizer
 from StreamingChat import StreamingChat
 
 # This application simulates a debate between two personas using OpenAI's API.
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
-#
-# TODO:
-# * Add the ability to upload PDFs about which to debate
-# * Add the ability to specify the URL of a news/information page on which to debate
 
 
 @st.cache_resource
@@ -70,12 +67,19 @@ def init_modes():
 
 
 def init_debaters():
+    if 'randomizer' not in st.session_state:
+        params = st.experimental_get_query_params()
+        if params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true':
+            st.session_state.randomizer = DebateRandomizer(topics=PARLEY_DEBATE_TOPIC_LIST,
+                                                           personas=PARLEY_DEBATE_PERSONA_LIST)
+        else:
+            st.session_state.randomizer = DebateRandomizer()
     if 'debater1' not in st.session_state:
-        st.session_state.debater1 = create_random_persona()
+        st.session_state.debater1 = st.session_state.randomizer.create_random_persona()
     if 'debater2' not in st.session_state:
-        st.session_state.debater2 = create_random_persona()
+        st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
     if 'topic' not in st.session_state:
-        st.session_state.topic = DebateRandomizer.get_topic()
+        st.session_state.topic = st.session_state.randomizer.get_topic()
 
 
 def init():
@@ -128,11 +132,11 @@ def sidebar():
             col1.markdown("Enter debate info or ")
             randomize = col2.button("Randomize", disabled=st.session_state.debating)
             if randomize:
-                st.session_state.debater1 = create_random_persona()
-                st.session_state.debater2 = create_random_persona()
+                st.session_state.debater1 = st.session_state.randomizer.create_random_persona()
+                st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
                 while st.session_state.debater2.name == st.session_state.debater1.name:
-                    st.session_state.debater2 = create_random_persona()
-                st.session_state.topic = DebateRandomizer.get_topic()
+                    st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
+                st.session_state.topic = st.session_state.randomizer.get_topic()
 
         topic = st.text_input(label="Debate Topic",
                               value=st.session_state.topic,
@@ -264,12 +268,12 @@ def is_debate_info_complete():
 
 def set_openapi_key(key):
     if key != '':
-        if os.getenv("KASS_KEY_PASS") is not None and\
-                key == os.getenv("KASS_KEY_PASS") and\
+        if os.getenv("KASS_KEY_PASS") is not None and \
+                key == os.getenv("KASS_KEY_PASS") and \
                 os.getenv("KASS_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("KASS_KEY")
-        elif os.getenv("CITI_KEY_PASS") is not None and\
-                key == os.getenv("CITI_KEY_PASS") and\
+        elif os.getenv("CITI_KEY_PASS") is not None and \
+                key == os.getenv("CITI_KEY_PASS") and \
                 os.getenv("CITI_KEY") is not None:
             os.environ["OPENAI_API_KEY"] = os.getenv("CITI_KEY")
         else:
