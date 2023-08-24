@@ -1,4 +1,3 @@
-import asyncio
 import queue
 import threading
 
@@ -9,8 +8,10 @@ from langchain.memory import ConversationSummaryBufferMemory
 from langchain.schema import LLMResult
 
 
-DEBATE_TEMPLATE = """The following is a respectful debate between an Opponent and me. Both parties are opinionated and provide lots of specific details from their context. If either side does not have information on a fact, they avoid that topic.
-    
+DEBATE_TEMPLATE = """The following is a respectful debate between an Opponent and Me. 
+Both parties are opinionated and provide lots of specific details from their context. 
+If either side does not have information on a fact, they avoid that topic.
+{doc_chat_context}
 Current conversation:
 {history}
 Opponent: {input}
@@ -18,15 +19,33 @@ Me:"""
 
 
 class StreamingChat:
-    MODEL_NAME = "gpt-3.5-turbo"
+    MODEL_NAME = "gpt-3.5-turbo-16k"
     TEMPERATURE = 0.9
 
     def system_prompt_template(self):
-        return PromptTemplate(input_variables=["history", "input"],
+        return PromptTemplate(input_variables=["history", "input", "doc_chat_context"],
                               template=DEBATE_TEMPLATE)
 
-    def __init__(self, model_name=MODEL_NAME, temperature=TEMPERATURE):
+    def __init__(self, model_name=MODEL_NAME, temperature=TEMPERATURE, doc_context=""):
         print("Initializing StreamingChat")
+
+        if doc_context != "":
+            doc_chat_context = f"""
+            
+            Additional information is being supplied within the below <document></document> tags. When replying, 
+            utilize the facts and opinions within the document to support your arguments.
+            Cite specific facts and opinions from the document context whenever possible. Include specific numbers.
+            <document>
+            {doc_context}
+            </document>
+            
+            """
+        else:
+            doc_chat_context = ""
+
+        prompt_template = self.system_prompt_template()
+        prompt_template = prompt_template.partial(doc_chat_context=doc_chat_context)
+
         self.callback_handler = IndirectCallbackHandler()
         self.llm = ChatOpenAI(model_name=model_name,
                               temperature=temperature,
@@ -35,7 +54,7 @@ class StreamingChat:
         self.conversation = ConversationChain(
             llm=self.llm,
             verbose=True,
-            prompt=self.system_prompt_template(),
+            prompt=prompt_template,
             memory=ConversationSummaryBufferMemory(
                 llm=self.llm,
                 max_token_limit=1000,

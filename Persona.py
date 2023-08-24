@@ -52,14 +52,17 @@ class Persona:
 
     def response_prompt(self, topic, prompt=""):
         return f'''
-        Continue to debate as {self.name} on the topic of {topic}, continuing to argue the same side of the debate. 
-        Respond to the following statement, using counter-arguments and giving 
-        specific examples and citing statistics when possible: {prompt}
+        {prompt}
+        
+        Me:
+        (Continue to debate as {self.name} on the topic of {topic}, arguing the same side of the debate as you did before. 
+        Respond to your opponent's statement, using counter-arguments and giving 
+        specific examples and citing statistics when possible.
         Try to limit the length of your statement to 3 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
         Reply as if you were the persona, without any editorializing. If you are a historical figure, try to imitate
-        their point of view and style of speaking.
-        Utilize aspects of your persona's identity in formulating your arguments.
+        their point of view and word choice.
+        Utilize aspects of your persona's identity in formulating your arguments.)
         '''
 
     def conclusion_prompt(self, topic="", prompt=""):

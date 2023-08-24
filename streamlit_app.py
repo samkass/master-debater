@@ -1,9 +1,10 @@
 import logging
 import os
-from random import seed, randint
+from random import randint
 from time import sleep
 
 import streamlit as st
+from PyPDF2 import PdfReader
 
 from Persona import Persona, create_random_persona
 from Possibilities import DebateRandomizer
@@ -98,6 +99,17 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         st.session_state.messages = []
     if "response" not in st.session_state:
         st.session_state.response = ""
+    if "doc_context" not in st.session_state:
+        st.session_state.doc_context = ""
+
+
+@st.cache_data
+def pdf_to_text(pdf):
+    pdf_reader = PdfReader(pdf)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
 
 
 def sidebar():
@@ -128,43 +140,37 @@ def sidebar():
                               disabled=st.session_state.debating)
 
         with st.expander("Debater", expanded=True):
-            debater1_name = st.text_input(label="Name",
+            debater1_name = st.text_input(label="Debater Name",
                                           value=st.session_state.debater1.name,
                                           placeholder="Name",
-                                          key=f"{randint(0, 100000)}",
                                           disabled=st.session_state.debating,
                                           help="Can be a real person or completely fictional")
-            debater1_id = st.text_input(label="Identity",
+            debater1_id = st.text_input(label="Debater Identity",
                                         value=st.session_state.debater1.identity,
                                         placeholder="Short Description",
-                                        key=f"{randint(0, 100000)}",
                                         disabled=st.session_state.debating,
                                         help=f"A couple words, for example, 'a football player'")
-            debater1_adjs = st.text_input(label="Adjectives",
+            debater1_adjs = st.text_input(label="Debater Adjectives",
                                           value=st.session_state.debater1.adjectives,
                                           placeholder="Comma-separated words",
-                                          key=f"{randint(0, 100000)}",
                                           disabled=st.session_state.debating,
                                           help="A couple of adjectives, for example, 'smart, funny, charming'"
                                           )
 
         with st.expander("Opponent", expanded=True):
-            debater2_name = st.text_input(label="Name",
+            debater2_name = st.text_input(label="Opponent Name",
                                           value=st.session_state.debater2.name,
                                           placeholder="Name",
-                                          key=f"{randint(0, 100000)}",
                                           disabled=st.session_state.debating,
                                           help="Can be a real person or completely fictional")
-            debater2_id = st.text_input(label="Identity",
+            debater2_id = st.text_input(label="Opponent Identity",
                                         value=st.session_state.debater2.identity,
                                         placeholder="Short Description",
-                                        key=f"{randint(0, 100000)}",
                                         disabled=st.session_state.debating,
                                         help=f"A couple words, for example, 'a cheerleader'")
-            debater2_adjs = st.text_input(label="Adjectives",
+            debater2_adjs = st.text_input(label="Opponent Adjectives",
                                           value=st.session_state.debater2.adjectives,
                                           placeholder="Comma-separated words",
-                                          key=f"{randint(0, 100000)}",
                                           disabled=st.session_state.debating,
                                           help="A couple of adjectives, for example, 'smart, funny, charming'")
 
@@ -172,6 +178,14 @@ def sidebar():
             with st.expander("Settings", expanded=False):
                 st.session_state.model_name = st.selectbox("Model",
                                                            ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
+
+        pdf = st.file_uploader("PDF Document (optional)",
+                               type="pdf",
+                               help="Will be used to provide additional or up-to-date context to debaters.")
+        if pdf is None or pdf == "":
+            st.session_state.doc_context = ""
+        else:
+            st.session_state.doc_context = pdf_to_text(pdf)
 
     st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
     st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
@@ -183,8 +197,8 @@ def sidebar():
 def new_debate():
     st.session_state.messages = []
 
-    st.session_state.debater1_chat = StreamingChat()
-    st.session_state.debater2_chat = StreamingChat()
+    st.session_state.debater1_chat = StreamingChat(doc_context=st.session_state.doc_context)
+    st.session_state.debater2_chat = StreamingChat(doc_context=st.session_state.doc_context)
 
     st.session_state.debater1_response = ""
     st.session_state.debater2_response = ""
