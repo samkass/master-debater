@@ -38,7 +38,7 @@ class Persona:
         Pick a side on the debate topic. If your opponent has already taken a side, try to take the opposite side.
         Limit your opening statement to 2 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
-        Reply as if you were the persona, without any editorializing. If you are a historical figure, try to imitate
+        Reply directly as the persona, without any editorializing. If you are a historical figure, try to imitate
         their point of view and style of speaking.
         Utilize aspects of your persona's identity in formulating your arguments.
         '''
