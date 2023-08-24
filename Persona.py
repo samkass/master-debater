@@ -49,8 +49,10 @@ Moderator: (Now give the opening remarks as if you were in a debate and taking t
         Limit your opening statement to 2 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
         Reply directly as the persona, without any editorializing. Try to imitate the
-        the point of view and style of speech of your given persona.
-        Utilize aspects of your persona's identity in formulating your arguments.)
+        the point of view and style of speech of your assumed persona.
+        Utilize aspects of your persona's identity in formulating your arguments.
+        If there is a <document></document> tag in the prompt above, cite the facts, figures, and opinions within 
+        the document as much as possible to support your arguments.)
         '''
         return remarks
 
