@@ -36,7 +36,7 @@ class Persona:
 Moderator: (Now give the opening remarks as if you were in a debate and taking the opposite viewpoint as your opponent
         on the topic of \"{topic}\", playing the role of {self.identity} named: {self.name}.
         You are someone who could be described with the following adjectives: {self.adjectives}.
-        Introduce yourself by name and identity.
+        Start by introducing yourself by name and identity.
         Try not to use the listed adjectives themselves in your reply.
         Pick a side on the debate topic. If your opponent has already taken a side, take the opposite side.
         Limit your opening statement to 2 paragraphs or less.
@@ -44,8 +44,8 @@ Moderator: (Now give the opening remarks as if you were in a debate and taking t
         Reply directly as the persona, without any editorializing. Try to imitate the
         the point of view and style of speech of your assumed persona.
         Utilize aspects of your persona's identity in formulating your arguments.
-        If there is a <document></document> tag in the prompt above, cite the numerical figures, and facts within 
-        the document as much as possible to support your arguments.)
+        If there is a document in the prompt context above, use the numerical figures and facts within 
+        the document as much as possible to support your arguments. But DO NOT mention "the document".)
         '''
         return remarks
 
