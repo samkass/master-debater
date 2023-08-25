@@ -20,8 +20,15 @@ class DebateRandomizer:
         else:
             return random.choice(self.personas)
 
+    def get_persona_object(self, name=None):
+        persona = self.get_persona(name)
+        return Persona(persona["Name"], persona["identity"], persona["adjectives"])
+
     def get_persona_name_list(self):
         return [persona["Name"] for persona in self.personas]
+
+    def get_persona_displayname_list(self):
+        return [f"{persona['Name']} ({persona['identity']})" for persona in self.personas]
 
     def create_random_persona(self) -> Persona:
         persona = self.get_persona()

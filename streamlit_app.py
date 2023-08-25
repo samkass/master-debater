@@ -74,6 +74,10 @@ def init_debaters():
                                                            personas=PARLEY_DEBATE_PERSONA_LIST)
         else:
             st.session_state.randomizer = DebateRandomizer()
+    if 'dropdown_mode' not in st.session_state:
+        params = st.experimental_get_query_params()
+        st.session_state.dropdown_mode = \
+            params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true'
     if 'debater1' not in st.session_state:
         st.session_state.debater1 = st.session_state.randomizer.create_random_persona()
     if 'debater2' not in st.session_state:
@@ -116,6 +120,11 @@ def pdf_to_text(pdf):
     return text
 
 
+def generate_dropdowns():
+    st.session_state.persona_name_list = st.session_state.randomizer.get_persona_name_list()
+    st.session_state.persona_displayname_list = st.session_state.randomizer.get_persona_displayname_list()
+
+
 def sidebar():
     with st.sidebar:
         if 'OPENAI_API_KEY' not in st.secrets:
@@ -138,17 +147,32 @@ def sidebar():
                     st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
                 st.session_state.topic = st.session_state.randomizer.get_topic()
 
+        if st.session_state.dropdown_mode:
+            generate_dropdowns()
+
         topic = st.text_input(label="Debate Topic",
                               value=st.session_state.topic,
                               placeholder="topic",
                               disabled=st.session_state.debating)
 
         with st.expander("Debater", expanded=True):
-            debater1_name = st.text_input(label="Debater Name",
-                                          value=st.session_state.debater1.name,
-                                          placeholder="Name",
-                                          disabled=st.session_state.debating,
-                                          help="Can be a real person or completely fictional")
+            if st.session_state.dropdown_mode:
+                debater1_displayname = st.selectbox(
+                    label="Debater Name",
+                    options=st.session_state.persona_displayname_list,
+                    index=st.session_state.persona_name_list.index(st.session_state.debater1.name),
+                    placeholder="Name",
+                    disabled=st.session_state.debating,
+                    help="Name of the first debater")
+                debater1_name_index = st.session_state.persona_displayname_list.index(debater1_displayname)
+                debater1_name = st.session_state.persona_name_list[debater1_name_index]
+                st.session_state.debater1 = st.session_state.randomizer.get_persona_object(name=debater1_name)
+            else:
+                debater1_name = st.text_input(label="Debater Name",
+                                              value=st.session_state.debater1.name,
+                                              placeholder="Name",
+                                              disabled=st.session_state.debating,
+                                              help="Can be a real person or completely fictional")
             debater1_id = st.text_input(label="Debater Identity",
                                         value=st.session_state.debater1.identity,
                                         placeholder="Short Description",
