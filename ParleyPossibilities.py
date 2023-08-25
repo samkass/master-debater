@@ -40,7 +40,7 @@ PARLEY_DEBATE_PERSONA_LIST = [
         'identity': 'a Technical Analyst',
         'adjectives': 'analytical, impatient, finds patterns, intuitive, mathematical'
     },
-    
+
     {
         'Name': 'Sherlock Holmes',
         'identity': 'a Detective',

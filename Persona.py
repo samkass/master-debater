@@ -44,7 +44,7 @@ Moderator: (Now give the opening remarks as if you were in a debate and taking t
         Reply directly as the persona, without any editorializing. Try to imitate the
         the point of view and style of speech of your assumed persona.
         Utilize aspects of your persona's identity in formulating your arguments.
-        If there is a <document></document> tag in the prompt above, cite the facts, figures, and opinions within 
+        If there is a <document></document> tag in the prompt above, cite the numerical figures, and facts within 
         the document as much as possible to support your arguments.)
         '''
         return remarks
