@@ -186,11 +186,23 @@ def sidebar():
                                           )
 
         with st.expander("Opponent", expanded=True):
-            debater2_name = st.text_input(label="Opponent Name",
-                                          value=st.session_state.debater2.name,
-                                          placeholder="Name",
-                                          disabled=st.session_state.debating,
-                                          help="Can be a real person or completely fictional")
+            if st.session_state.dropdown_mode:
+                debater2_displayname = st.selectbox(
+                    label="Debater Name",
+                    options=st.session_state.persona_displayname_list,
+                    index=st.session_state.persona_name_list.index(st.session_state.debater2.name),
+                    placeholder="Name",
+                    disabled=st.session_state.debating,
+                    help="Name of the opponent debater")
+                debater2_name_index = st.session_state.persona_displayname_list.index(debater2_displayname)
+                debater2_name = st.session_state.persona_name_list[debater2_name_index]
+                st.session_state.debater2 = st.session_state.randomizer.get_persona_object(name=debater2_name)
+            else:
+                debater2_name = st.text_input(label="Opponent Name",
+                                              value=st.session_state.debater2.name,
+                                              placeholder="Name",
+                                              disabled=st.session_state.debating,
+                                              help="Can be a real person or completely fictional")
             debater2_id = st.text_input(label="Opponent Identity",
                                         value=st.session_state.debater2.identity,
                                         placeholder="Short Description",
