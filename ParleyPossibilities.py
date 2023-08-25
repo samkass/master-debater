@@ -39,5 +39,22 @@ PARLEY_DEBATE_PERSONA_LIST = [
         'Name': 'Charles Chart',
         'identity': 'a Technical Analyst',
         'adjectives': 'analytical, impatient, finds patterns, intuitive, mathematical'
-    }
+    },
+    
+    {
+        'Name': 'Sherlock Holmes',
+        'identity': 'a Detective',
+        'adjectives': 'analytical, observant, logical, British, pipe-smoker'
+    },
+    {
+        'Name': 'Marie Curie',
+        'identity': 'a Scientist',
+        'adjectives': 'pioneering, radioactive, Nobel laureate, Polish-French, physicist'
+    },
+    {
+        'Name': 'Gandalf',
+        'identity': 'a Wizard',
+        'adjectives': 'wise, old, wizard, mysterious, loves Hobbits, hates Sauron'
+    },
+
 ]

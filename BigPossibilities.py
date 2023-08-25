@@ -85,11 +85,6 @@ BIG_DEBATE_PERSONA_LIST = [
         'adjectives': 'wise, old, wizard, mysterious, loves Hobbits, hates Sauron'
     },
     {
-        'Name': 'Obama',
-        'identity': 'a former President',
-        'adjectives': 'Democrat, leader, smart, funny, concerned with healthcare'
-    },
-    {
         'Name': 'Sandy',
         'identity': 'a Squirrel',
         'adjectives': 'funny, smart, loves nuts'
