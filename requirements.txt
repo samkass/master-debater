@@ -1,5 +1,5 @@
 python-dotenv
-streamlit~=1.25.0
+streamlit~=1.26.0
 streamlit-chat
 langchain~=0.0.263
 tiktoken
