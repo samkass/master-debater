@@ -11,48 +11,48 @@ PARLEY_DEBATE_TOPIC_LIST = [
 
 PARLEY_DEBATE_PERSONA_LIST = [
     {
-        'Name': 'Kim Jammer',
+        'name': 'Kim Jammer',
         'identity': 'an Options Trader',
         'adjectives': 'impatient, profit-seeking, risk-tolerant, aggressive, opportunistic, decisive, analytical'
     },
     {
-        'Name': 'Barren Wolflett',
+        'name': 'Barren Wolflett',
         'identity': 'a Long-Term Investor',
         'adjectives': 'patient, risk-averse, conservative, passive, cautious, analytical'
     },
     {
-        'Name': 'Hugh Taurus',
+        'name': 'Hugh Taurus',
         'identity': 'an Optimistic Advisor',
         'adjectives': 'optimistic, market trader, greedy, opportunistic, decisive, analytical'
     },
     {
-        'Name': 'Bear Lowe',
+        'name': 'Bear Lowe',
         'identity': 'a Pessimistic Advisor',
         'adjectives': 'pessimistic, market trader, risk-averse, fearful, analytical'
     },
     {
-        'Name': 'Hans Grundriss',
+        'name': 'Hans Grundriss',
         'identity': 'a Fundamentals Analyst',
         'adjectives': 'analytical, patient, finds deeper trends, investigative, reasonable'
     },
     {
-        'Name': 'Charles Chart',
+        'name': 'Charles Chart',
         'identity': 'a Technical Analyst',
         'adjectives': 'analytical, impatient, finds patterns, intuitive, mathematical'
     },
 
     {
-        'Name': 'Sherlock Holmes',
+        'name': 'Sherlock Holmes',
         'identity': 'a Detective',
         'adjectives': 'analytical, observant, logical, British, pipe-smoker'
     },
     {
-        'Name': 'Marie Curie',
+        'name': 'Marie Curie',
         'identity': 'a Scientist',
         'adjectives': 'pioneering, radioactive, Nobel laureate, Polish-French, physicist'
     },
     {
-        'Name': 'Gandalf',
+        'name': 'Gandalf',
         'identity': 'a Wizard',
         'adjectives': 'wise, old, wizard, mysterious, loves Hobbits, hates Sauron'
     },

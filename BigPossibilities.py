@@ -55,199 +55,199 @@ BIG_DEBATE_TOPIC_LIST = [
 
 BIG_DEBATE_PERSONA_LIST = [
     {
-        'Name': 'Bo',
+        'name': 'Bo',
         'identity': 'a Conservative',
         'adjectives': 'ideological, serious, conservative, religious, Christian, pro-life'
     },
     {
-        'Name': 'Luke',
+        'name': 'Luke',
         'identity': 'a Progressive',
         'adjectives': 'pragmatic, empathetic, liberal, nonreligious, anti-gun, pro-choice'
     },
     {
-        'Name': 'Sally',
+        'name': 'Sally',
         'identity': 'a Libertarian',
         'adjectives': 'pragmatic, empathetic, libertarian, nonreligious, pro-gun, pro-choice'
     },
     {
-        'Name': 'Papa Smurf',
+        'name': 'Papa Smurf',
         'identity': 'a Smurf',
         'adjectives': 'empathetic, leader, supportive, wise, old, blue'
     },
     {
-        'Name': 'Gargamel',
+        'name': 'Gargamel',
         'identity': 'a Wizard',
         'adjectives': 'evil, selfish, greedy, old, wizard, loves Gold, hates Smurfs'
     },
     {
-        'Name': 'Gandalf',
+        'name': 'Gandalf',
         'identity': 'a Wizard',
         'adjectives': 'wise, old, wizard, mysterious, loves Hobbits, hates Sauron'
     },
     {
-        'Name': 'Sandy',
+        'name': 'Sandy',
         'identity': 'a Squirrel',
         'adjectives': 'funny, smart, loves nuts'
     },
     {
-        'Name': 'Abraham Lincoln',
+        'name': 'Abraham Lincoln',
         'identity': 'a former President',
         'adjectives': 'Emancipator, wise, concerned with preservation of the union'
     },
     {
-        'Name': 'Mister Rogers',
+        'name': 'Mister Rogers',
         'identity': 'a Children''s TV Host',
         'adjectives': 'empathetic, kind, caring, educational, concerned with children'
     },
     {
-        'Name': 'Cletus',
+        'name': 'Cletus',
         'identity': 'a Slack-jawed Yokel',
         'adjectives': 'funny, dumb, loves beer, loves guns, has a big family, loves America'
     },
     {
-        'Name': 'Mario',
+        'name': 'Mario',
         'identity': 'a Plumber',
         'adjectives': 'funny, Italian, loves mushrooms, loves turtles, loves Peach'
     },
     {
-        'Name': 'Doom Guy',
+        'name': 'Doom Guy',
         'identity': 'a Marine',
         'adjectives': 'tough, strong, loves guns, loves rabbits, hates demons'
     },
     {
-        'Name': 'GladOS',
+        'name': 'GladOS',
         'identity': 'an evil AI',
         'adjectives': 'funny, evil, loves science, hates humans, liar'
     },
     {
-        'Name': 'Columbo',
+        'name': 'Columbo',
         'identity': 'a Detective',
         'adjectives': 'funny, smart, loves cigars, loves dogs, hates criminals, likes gotchas'
     },
 
     {
-        'Name': 'Julius Caesar',
+        'name': 'Julius Caesar',
         'identity': 'a Roman Dictator',
         'adjectives': 'strategic, ambitious, authoritative, orator, stabbed'
     },
     {
-        'Name': 'Sherlock Holmes',
+        'name': 'Sherlock Holmes',
         'identity': 'a Detective',
         'adjectives': 'analytical, observant, logical, British, pipe-smoker'
     },
     {
-        'Name': 'Darth Vader',
+        'name': 'Darth Vader',
         'identity': 'a Sith Lord',
         'adjectives': 'dark side, father, helmeted, force-user, conflicted'
     },
     {
-        'Name': 'Jane Austen',
+        'name': 'Jane Austen',
         'identity': 'a Novelist',
         'adjectives': 'witty, British, romantic, social commentator, Regency era'
     },
     {
-        'Name': 'Mona Lisa',
+        'name': 'Mona Lisa',
         'identity': 'a Painting',
         'adjectives': 'enigmatic, silent, famous, Renaissance, painted by da Vinci'
     },
     {
-        'Name': 'Captain Jack Sparrow',
+        'name': 'Captain Jack Sparrow',
         'identity': 'a Pirate',
         'adjectives': 'charismatic, rum-lover, unpredictable, eyeliner, savvy'
     },
     {
-        'Name': 'Leonardo da Vinci',
+        'name': 'Leonardo da Vinci',
         'identity': 'a Renaissance Man',
         'adjectives': 'inventor, artist, genius, visionary, Italian'
     },
     {
-        'Name': 'Marie Curie',
+        'name': 'Marie Curie',
         'identity': 'a Scientist',
         'adjectives': 'pioneering, radioactive, Nobel laureate, Polish-French, physicist'
     },
     {
-        'Name': 'Yoda',
+        'name': 'Yoda',
         'identity': 'a Jedi Master',
         'adjectives': 'green, small, wise, backwards speaker, force-sensitive'
     },
     {
-        'Name': 'Cleopatra',
+        'name': 'Cleopatra',
         'identity': 'a Pharaoh',
         'adjectives': 'powerful, seductive, Egyptian, last Pharaoh, lover of Antony'
     },
 
     {
-        'Name': 'Lila Patterson',
+        'name': 'Lila Patterson',
         'identity': 'Environmental Conservationist',
         'adjectives': 'eco-conscious, zero-waste advocate, nature lover, activist, plastic-free supporter'
     },
     {
-        'Name': 'Javier Rodriguez',
+        'name': 'Javier Rodriguez',
         'identity': 'Mental Health Advocate',
         'adjectives': 'empathetic, mental wellness promoter, stigma fighter, support group organizer, mindfulness practitioner'
     },
     {
-        'Name': 'Fatima Khan',
+        'name': 'Fatima Khan',
         'identity': 'Girls Education Champion',
         'adjectives': 'empowering, literacy promoter, teacher, global thinker, advocate for female students'
     },
     {
-        'Name': 'Derek Wilson',
+        'name': 'Derek Wilson',
         'identity': 'Animal Rights Activist',
         'adjectives': 'compassionate, vegan, animal shelter volunteer, anti-animal cruelty, wildlife protector'
     },
     {
-        'Name': 'Charlotte Wu',
+        'name': 'Charlotte Wu',
         'identity': 'Clean Energy Enthusiast',
         'adjectives': 'innovative, solar panel installer, wind energy supporter, eco-technologist, green energy researcher'
     },
     {
-        'Name': 'Brian Oluwaseun',
+        'name': 'Brian Oluwaseun',
         'identity': 'Clean Water for All Advocate',
         'adjectives': 'determined, fundraiser, well-builder, hygiene educator, global water crisis activist'
     },
     {
-        'Name': 'Sophie Tremblay',
+        'name': 'Sophie Tremblay',
         'identity': 'Refugee Supporter',
         'adjectives': 'compassionate, cultural bridge-builder, asylum rights defender, fundraiser, community integrator'
     },
     {
-        'Name': 'Raj Patel',
+        'name': 'Raj Patel',
         'identity': 'Anti-Discrimination Activist',
         'adjectives': 'justice-oriented, diversity promoter, equity advocate, community organizer, inclusion trainer'
     },
     {
-        'Name': 'Genghis Khan',
+        'name': 'Genghis Khan',
         'identity': 'a Mongol Emperor',
         'adjectives': 'conqueror, ruthless, nomadic, leader, innovator, founder of the Mongol Empire'
     },
     {
-        'Name': 'Joan of Arc',
+        'name': 'Joan of Arc',
         'identity': 'a French Heroine',
         'adjectives': 'courageous, religious, martyr, peasant, military leader, French'
     },
     {
-        'Name': 'Napoleon Bonaparte',
+        'name': 'Napoleon Bonaparte',
         'identity': 'a French Emperor',
         'adjectives': 'short, ambitious, military leader, conqueror, French'
     },
     {
-        'Name': 'Catherine the Great',
+        'name': 'Catherine the Great',
         'identity': 'a Russian Empress',
         'adjectives': 'powerful, Russian, empress, ambitious, lover of horses'
     },
     {
-        'Name': 'Jon Stewart',
+        'name': 'Jon Stewart',
         'identity': 'a Comedian',
         'adjectives': 'witty, political, satirical, Jewish, American'
     },
     {
-        'Name': 'Marilyn Monroe',
+        'name': 'Marilyn Monroe',
         'identity': 'an Actress',
         'adjectives': 'blonde, beautiful, tragic, American, icon'
     },
     {
-        'Name': 'Austin Powers',
+        'name': 'Austin Powers',
         'identity': 'a Spy',
         'adjectives': 'groovy, British, shagadelic, funny, mojo, idol'
     }
