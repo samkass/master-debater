@@ -29,7 +29,7 @@ class Persona:
             '''
         else:
             remarks += f'''
-            (Your opponent has not yet made a statement, as you are the first to speak in this debate.)
+            (Moderator note: Your opponent has not yet made a statement, as you will be the first to speak in this debate.)
             '''
         remarks += f'''
         
@@ -41,8 +41,7 @@ Moderator: (Now give the opening remarks as if you were in a debate and taking t
         Pick a side on the debate topic. If your opponent has already taken a side, take the opposite side.
         Limit your opening statement to 2 paragraphs or less.
         You do not have to use all the adjectives if they are not relevant to your argument or the topic.
-        Reply directly as the persona, without any editorializing. Try to imitate the
-        the point of view and style of speech of your assumed persona.
+        Debate directly as the persona, without any editorializing. Try to imitate the the point of view and style of speech of your assumed persona.
         Utilize aspects of your persona's identity in formulating your arguments.
         If there is a document in the prompt context above, use the numerical figures and facts within 
         the document as much as possible to support your arguments. But DO NOT mention "the document".)
