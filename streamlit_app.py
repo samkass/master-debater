@@ -78,10 +78,8 @@ def init_debaters():
         params = st.experimental_get_query_params()
         st.session_state.dropdown_mode = \
             params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true'
-    if 'debater1' not in st.session_state:
-        st.session_state.debater1 = st.session_state.randomizer.create_random_persona()
-    if 'debater2' not in st.session_state:
-        st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
+    if 'debater1_name' not in st.session_state or 'debater2_name' not in st.session_state:
+        randomize_debaters()
     if 'topic' not in st.session_state:
         st.session_state.topic = st.session_state.randomizer.get_topic()
 
@@ -125,6 +123,28 @@ def generate_dropdowns():
     st.session_state.persona_displayname_list = st.session_state.randomizer.get_persona_displayname_list()
 
 
+def set_debater1_from_persona(persona):
+    st.session_state.debater1_name = persona.name
+    st.session_state.debater1_identity = persona.identity
+    st.session_state.debater1_adjectives = persona.adjectives
+
+
+def set_debater2_from_persona(persona):
+    st.session_state.debater2_name = persona.name
+    st.session_state.debater2_identity = persona.identity
+    st.session_state.debater2_adjectives = persona.adjectives
+
+
+def randomize_debaters():
+    debater1 = st.session_state.randomizer.create_random_persona()
+    debater2 = st.session_state.randomizer.create_random_persona()
+    while debater2.name == debater1.name:
+        debater2 = st.session_state.randomizer.create_random_persona()
+
+    set_debater1_from_persona(debater1)
+    set_debater2_from_persona(debater2)
+
+
 def sidebar():
     with st.sidebar:
         if 'OPENAI_API_KEY' not in st.secrets:
@@ -135,89 +155,97 @@ def sidebar():
         else:
             openapi_key = ''
 
+        if st.session_state.dropdown_mode:
+            generate_dropdowns()
+
         st.divider()
         with st.container():
             col1, col2 = st.columns(2)
             col1.markdown("Enter debate info or ")
             randomize = col2.button("Randomize", disabled=st.session_state.debating)
             if randomize:
-                st.session_state.debater1 = st.session_state.randomizer.create_random_persona()
-                st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
-                while st.session_state.debater2.name == st.session_state.debater1.name:
-                    st.session_state.debater2 = st.session_state.randomizer.create_random_persona()
+                randomize_debaters()
                 st.session_state.topic = st.session_state.randomizer.get_topic()
+                if st.session_state.dropdown_mode:
+                    st.session_state.debater1_displayname = \
+                        st.session_state.persona_displayname_list[
+                            st.session_state.persona_name_list.index(st.session_state.debater1_name)
+                        ]
+                    st.session_state.debater2_displayname = \
+                        st.session_state.persona_displayname_list[
+                            st.session_state.persona_name_list.index(st.session_state.debater2_name)
+                        ]
 
-        if st.session_state.dropdown_mode:
-            generate_dropdowns()
-
-        topic = st.text_input(label="Debate Topic",
-                              value=st.session_state.topic,
-                              placeholder="topic",
-                              disabled=st.session_state.debating)
+        st.text_input(label="Debate Topic",
+                      key="topic",
+                      placeholder="topic",
+                      disabled=st.session_state.debating)
 
         with st.expander("Debater", expanded=True):
             if st.session_state.dropdown_mode:
-                debater1_displayname = st.selectbox(
+                st.selectbox(
                     label="Debater Name",
+                    key="debater1_displayname",
                     options=st.session_state.persona_displayname_list,
-                    index=st.session_state.persona_name_list.index(st.session_state.debater1.name),
                     placeholder="Name",
                     disabled=st.session_state.debating,
                     help="Name of the first debater")
-                debater1_name_index = st.session_state.persona_displayname_list.index(debater1_displayname)
+                debater1_name_index = \
+                    st.session_state.persona_displayname_list.index(st.session_state.debater1_displayname)
                 debater1_name = st.session_state.persona_name_list[debater1_name_index]
-                st.session_state.debater1 = st.session_state.randomizer.get_persona_object(name=debater1_name)
+                set_debater1_from_persona(st.session_state.randomizer.get_persona_object(name=debater1_name))
             else:
-                debater1_name = st.text_input(label="Debater Name",
-                                              value=st.session_state.debater1.name,
-                                              placeholder="Name",
-                                              disabled=st.session_state.debating,
-                                              help="Can be a real person or completely fictional")
-            debater1_id = st.text_input(label="Debater Identity",
-                                        value=st.session_state.debater1.identity,
-                                        placeholder="Short Description",
-                                        disabled=st.session_state.debating,
-                                        help=f"A couple words, for example, 'a football player'")
-            debater1_adjs = st.text_input(label="Debater Adjectives",
-                                          value=st.session_state.debater1.adjectives,
-                                          placeholder="Comma-separated words",
-                                          disabled=st.session_state.debating,
-                                          help="A couple of adjectives, for example, 'smart, funny, charming'"
-                                          )
+                st.text_input(label="Debater Name",
+                              key="debater1_name",
+                              placeholder="Name",
+                              disabled=st.session_state.debating,
+                              help="Can be a real person or completely fictional")
+            st.text_input(label="Debater Identity",
+                          key="debater1_identity",
+                          placeholder="Short Description",
+                          disabled=st.session_state.debating,
+                          help=f"A couple words, for example, 'a football player'")
+            st.text_input(label="Debater Adjectives",
+                          key="debater1_adjectives",
+                          placeholder="Comma-separated words",
+                          disabled=st.session_state.debating,
+                          help="A couple of adjectives, for example, 'smart, funny, charming'"
+                          )
 
         with st.expander("Opponent", expanded=True):
             if st.session_state.dropdown_mode:
-                debater2_displayname = st.selectbox(
+                st.selectbox(
                     label="Debater Name",
+                    key="debater2_displayname",
                     options=st.session_state.persona_displayname_list,
-                    index=st.session_state.persona_name_list.index(st.session_state.debater2.name),
                     placeholder="Name",
                     disabled=st.session_state.debating,
                     help="Name of the opponent debater")
-                debater2_name_index = st.session_state.persona_displayname_list.index(debater2_displayname)
+                debater2_name_index = \
+                    st.session_state.persona_displayname_list.index(st.session_state.debater2_displayname)
                 debater2_name = st.session_state.persona_name_list[debater2_name_index]
-                st.session_state.debater2 = st.session_state.randomizer.get_persona_object(name=debater2_name)
+                set_debater2_from_persona(st.session_state.randomizer.get_persona_object(name=debater2_name))
             else:
-                debater2_name = st.text_input(label="Opponent Name",
-                                              value=st.session_state.debater2.name,
-                                              placeholder="Name",
-                                              disabled=st.session_state.debating,
-                                              help="Can be a real person or completely fictional")
-            debater2_id = st.text_input(label="Opponent Identity",
-                                        value=st.session_state.debater2.identity,
-                                        placeholder="Short Description",
-                                        disabled=st.session_state.debating,
-                                        help=f"A couple words, for example, 'a cheerleader'")
-            debater2_adjs = st.text_input(label="Opponent Adjectives",
-                                          value=st.session_state.debater2.adjectives,
-                                          placeholder="Comma-separated words",
-                                          disabled=st.session_state.debating,
-                                          help="A couple of adjectives, for example, 'smart, funny, charming'")
+                st.text_input(label="Opponent Name",
+                              key="debater2_name",
+                              placeholder="Name",
+                              disabled=st.session_state.debating,
+                              help="Can be a real person or completely fictional")
+            st.text_input(label="Opponent Identity",
+                          key="debater2_identity",
+                          placeholder="Short Description",
+                          disabled=st.session_state.debating,
+                          help=f"A couple words, for example, 'a cheerleader'")
+            st.text_input(label="Opponent Adjectives",
+                          key="debater2_adjectives",
+                          placeholder="Comma-separated words",
+                          disabled=st.session_state.debating,
+                          help="A couple of adjectives, for example, 'smart, funny, charming'")
 
-        if st.session_state.settings["show_settings"]:
-            with st.expander("Settings", expanded=False):
-                st.session_state.model_name = st.selectbox("Model",
-                                                           ("gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
+            if st.session_state.settings["show_settings"]:
+                with st.expander("Settings", expanded=False):
+                    st.session_state.model_name = st.selectbox("Model",
+                                                               ("gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
 
         pdf = st.file_uploader("PDF Document (optional)",
                                type="pdf",
@@ -226,10 +254,6 @@ def sidebar():
             st.session_state.doc_context = ""
         else:
             st.session_state.doc_context = pdf_to_text(pdf)
-
-    st.session_state.debater1 = Persona(debater1_name, debater1_id, debater1_adjs)
-    st.session_state.debater2 = Persona(debater2_name, debater2_id, debater2_adjs)
-    st.session_state.topic = topic
 
     set_openapi_key(openapi_key)
 
@@ -260,7 +284,7 @@ def chat_response_generator(topic, phase, chat, persona, opponent_response):
     return chat_response
 
 
-def generate_response(topic, phase, chat, persona, opponent_response):
+def generate_response(phase, topic, chat, persona, opponent_response):
     with st.chat_message("user", avatar=persona.avatar):
         message_placeholder = st.empty()
         full_response = ""
@@ -272,33 +296,39 @@ def generate_response(topic, phase, chat, persona, opponent_response):
     return full_response
 
 
-def generate_response_pair(topic, phase):
-    st.session_state.debater1_response = generate_response(topic,
-                                                           phase,
+def generate_response_pair(phase):
+    debater1_persona = Persona(name=st.session_state.debater1_name,
+                               identity=st.session_state.debater1_identity,
+                               adjectives=st.session_state.debater1_adjectives)
+    st.session_state.debater1_response = generate_response(phase,
+                                                           st.session_state.topic,
                                                            st.session_state.debater1_chat,
-                                                           st.session_state.debater1,
+                                                           debater1_persona,
                                                            st.session_state.debater2_response)
-    st.session_state.messages.append({"role": st.session_state.debater1.name,
-                                      "avatar": st.session_state.debater1.avatar,
+    st.session_state.messages.append({"role": debater1_persona.name,
+                                      "avatar": debater1_persona.avatar,
                                       "content": st.session_state.debater1_response})
 
-    st.session_state.debater2_response = generate_response(topic,
-                                                           phase,
+    debater2_persona = Persona(name=st.session_state.debater2_name,
+                               identity=st.session_state.debater2_identity,
+                               adjectives=st.session_state.debater2_adjectives)
+    st.session_state.debater2_response = generate_response(phase,
+                                                           st.session_state.topic,
                                                            st.session_state.debater2_chat,
-                                                           st.session_state.debater2,
+                                                           debater2_persona,
                                                            st.session_state.debater1_response)
-    st.session_state.messages.append({"role": st.session_state.debater2.name,
-                                      "avatar": st.session_state.debater2.avatar,
+    st.session_state.messages.append({"role": debater2_persona.name,
+                                      "avatar": debater2_persona.avatar,
                                       "content": st.session_state.debater2_response})
 
 
 def is_debate_info_complete():
-    return (st.session_state.debater1.name != "" and
-            st.session_state.debater2.name != "" and
-            st.session_state.debater1.identity != "" and
-            st.session_state.debater2.identity != "" and
-            st.session_state.debater1.adjectives != "" and
-            st.session_state.debater2.adjectives != "" and
+    return (st.session_state.debater1_name != "" and
+            st.session_state.debater2_name != "" and
+            st.session_state.debater1_identity != "" and
+            st.session_state.debater2_identity != "" and
+            st.session_state.debater1_adjectives != "" and
+            st.session_state.debater2_adjectives != "" and
             st.session_state.topic != "")
 
 
@@ -348,18 +378,18 @@ def main():
             new_debate()
             chat_area.empty()
             with appendix.container():
-                generate_response_pair(st.session_state.topic, "opening")
+                generate_response_pair("opening")
             st.session_state.debating = True
             st.experimental_rerun()
 
     if continue_chat:
         with appendix.container():
-            generate_response_pair(st.session_state.topic, "response")
+            generate_response_pair("response")
         st.experimental_rerun()
 
     if conclude_chat:
         with appendix.container():
-            generate_response_pair(st.session_state.topic, "conclusion")
+            generate_response_pair("conclusion")
         st.session_state.debating = False
         st.experimental_rerun()
 
