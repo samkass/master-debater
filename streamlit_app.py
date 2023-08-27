@@ -169,8 +169,10 @@ def doc_context_to_embeddings(doc_context):
 
 def process_pdf():
     print("Processing PDF.")
-    st.session_state.doc_context = pdf_to_text(st.session_state.pdf)
-    st.session_state.embeddings = doc_context_to_embeddings(st.session_state.doc_context)
+    if st.session_state.pdf is not None:
+        with st.spinner("Processing PDF."):
+            st.session_state.doc_context = pdf_to_text(st.session_state.pdf)
+            st.session_state.embeddings = doc_context_to_embeddings(st.session_state.doc_context)
 
 
 def sidebar():
