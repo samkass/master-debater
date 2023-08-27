@@ -1,52 +1,55 @@
 import queue
 import threading
 
-from langchain import ConversationChain, PromptTemplate
+from langchain import PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.base import Chain
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationSummaryBufferMemory
+from langchain.memory import ConversationBufferMemory
 from langchain.schema import LLMResult
-
 
 DEBATE_TEMPLATE = """The following is a respectful debate between an Opponent and Me. 
 Both parties are opinionated and provide lots of specific details from their context. 
 If either side does not have information on a fact, they avoid that topic.
 
 Current conversation:
-{history}
-Opponent: {input}
+{chat_history}
+Opponent: {question}
 Me:"""
 
 
-class StreamingChat:
-    MODEL_NAME = "gpt-3.5-turbo"
+class StreamingChatWithEmbeddings:
+    MODEL_NAME = "gpt-3.5-turbo-16k"
     TEMPERATURE = 0.9
 
     @staticmethod
     def system_prompt_template():
-        return PromptTemplate(input_variables=["history", "input"],
+        return PromptTemplate(input_variables=["history", "input", "doc_chat_context"],
                               template=DEBATE_TEMPLATE)
 
-    def __init__(self, model_name=MODEL_NAME, temperature=TEMPERATURE, verbose=False):
+    def __init__(self, embeddings, model_name=MODEL_NAME, temperature=TEMPERATURE):
         print("Initializing StreamingChat")
 
-        prompt_template = self.system_prompt_template()
+        prompt_template = PromptTemplate.from_template(DEBATE_TEMPLATE)
 
         self.callback_handler = IndirectCallbackHandler()
-        self.llm = ChatOpenAI(model_name=model_name,
-                              temperature=temperature,
-                              streaming=True,
-                              callbacks=[self.callback_handler])
-        self.conversation = ConversationChain(
-            llm=self.llm,
-            verbose=verbose,
-            prompt=prompt_template,
-            memory=ConversationSummaryBufferMemory(
-                llm=self.llm,
+        llm = ChatOpenAI(model_name=model_name,
+                         temperature=temperature,
+                         streaming=True,
+                         callbacks=[self.callback_handler])
+
+        self.conversation = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=embeddings.as_retriever(),
+            condense_question_prompt=prompt_template,
+            memory=ConversationBufferMemory(  # Use ConversationSummaryBufferMemory?
+                llm=llm,
                 max_token_limit=1000,
                 ai_prefix="Me",
                 human_prefix="Opponent",
+                memory_key="chat_history",
+                return_messages=True
             )
         )
 
@@ -96,7 +99,7 @@ class ResponseStream(BaseCallbackHandler):
 
     def run_chain(self):
         try:
-            self.chain.run(self.prompt)
+            self.chain.run({"question": self.prompt})
         except Exception as e:
             self.queue.put("Error calling OpenAPI. Please validate the key is correct.")
 

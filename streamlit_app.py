@@ -5,11 +5,16 @@ from time import sleep
 
 import streamlit as st
 from PyPDF2 import PdfReader
+from langchain import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
 
 from ParleyPossibilities import PARLEY_DEBATE_TOPIC_LIST, PARLEY_DEBATE_PERSONA_LIST
 from Persona import Persona
 from DebateRandomizer import DebateRandomizer
 from StreamingChat import StreamingChat
+from StreamingChatWithEmbeddings import StreamingChatWithEmbeddings
+
 
 # This application simulates a debate between two personas using OpenAI's API.
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
@@ -107,6 +112,8 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         st.session_state.response = ""
     if "doc_context" not in st.session_state:
         st.session_state.doc_context = ""
+    if "embeddings" not in st.session_state:
+        st.session_state.embeddings = None
 
 
 @st.cache_data
@@ -143,6 +150,27 @@ def randomize_debaters():
 
     set_debater1_from_persona(debater1)
     set_debater2_from_persona(debater2)
+
+
+def doc_context_to_embeddings(doc_context):
+    print("Splitting PDF into chunks and create embeddings")
+    text_splitter = CharacterTextSplitter(
+        separator="\n",
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len
+    )
+    chunks = text_splitter.split_text(doc_context)
+    embeddings = OpenAIEmbeddings()
+    knowledge_base = FAISS.from_texts(chunks, embeddings)
+    print("Created embeddings")
+    return knowledge_base
+
+
+def process_pdf():
+    print("Processing PDF.")
+    st.session_state.doc_context = pdf_to_text(st.session_state.pdf)
+    st.session_state.embeddings = doc_context_to_embeddings(st.session_state.doc_context)
 
 
 def sidebar():
@@ -247,13 +275,11 @@ def sidebar():
                     st.session_state.model_name = st.selectbox("Model",
                                                                ("gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
 
-        pdf = st.file_uploader("PDF Document (optional)",
-                               type="pdf",
-                               help="Will be used to provide additional or up-to-date context to debaters.")
-        if pdf is None or pdf == "":
-            st.session_state.doc_context = ""
-        else:
-            st.session_state.doc_context = pdf_to_text(pdf)
+        st.file_uploader("PDF Document (optional)",
+                         type="pdf",
+                         on_change=process_pdf,
+                         key="pdf",
+                         help="Will be used to provide additional or up-to-date context to debaters.")
 
     set_openapi_key(openapi_key)
 
@@ -261,8 +287,12 @@ def sidebar():
 def new_debate():
     st.session_state.messages = []
 
-    st.session_state.debater1_chat = StreamingChat(doc_context=st.session_state.doc_context)
-    st.session_state.debater2_chat = StreamingChat(doc_context=st.session_state.doc_context)
+    if st.session_state.embeddings is None:
+        st.session_state.debater1_chat = StreamingChat()
+        st.session_state.debater2_chat = StreamingChat()
+    else:
+        st.session_state.debater1_chat = StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings)
+        st.session_state.debater2_chat = StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings)
 
     st.session_state.debater1_response = ""
     st.session_state.debater2_response = ""
