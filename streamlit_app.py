@@ -66,9 +66,9 @@ def init_modes():
         "use_streaming": use_streaming
     }
 
-    logging.warning(f"TEST_MODE = {st.session_state.settings['test_mode']}")
-    logging.warning(f"SHOW_SETTINGS = {st.session_state.settings['show_settings']}")
-    logging.warning(f"USE_STREAMING = {st.session_state.settings['use_streaming']}")
+    logging.info(f"TEST_MODE = {st.session_state.settings['test_mode']}")
+    logging.info(f"SHOW_SETTINGS = {st.session_state.settings['show_settings']}")
+    logging.info(f"USE_STREAMING = {st.session_state.settings['use_streaming']}")
 
 
 def init_debaters():
