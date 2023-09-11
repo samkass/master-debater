@@ -170,13 +170,13 @@ def sidebar():
                                         value="",
                                         type="password",
                                         help="Not stored to disk or logged")
+            st.divider()
         else:
             openapi_key = ''
 
         if st.session_state.dropdown_mode:
             generate_dropdowns()
 
-        st.divider()
         with st.container():
             col1, col2 = st.columns(2)
             col1.markdown("Enter debate info or ")
