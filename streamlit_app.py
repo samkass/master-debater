@@ -9,6 +9,7 @@ from langchain import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 
+from DocumentSummarizer import DocumentSummarizer, EmbeddingsException
 from ParleyPossibilities import PARLEY_DEBATE_TOPIC_LIST, PARLEY_DEBATE_PERSONA_LIST
 from Persona import Persona
 from DebateRandomizer import DebateRandomizer
@@ -110,19 +111,8 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         st.session_state.messages = []
     if "response" not in st.session_state:
         st.session_state.response = ""
-    if "doc_context" not in st.session_state:
-        st.session_state.doc_context = ""
     if "embeddings" not in st.session_state:
         st.session_state.embeddings = None
-
-
-@st.cache_data
-def pdf_to_text(pdf):
-    pdf_reader = PdfReader(pdf)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
 
 
 def generate_dropdowns():
@@ -152,27 +142,25 @@ def randomize_debaters():
     set_debater2_from_persona(debater2)
 
 
-def doc_context_to_embeddings(doc_context):
-    print("Splitting PDF into chunks and create embeddings")
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    chunks = text_splitter.split_text(doc_context)
-    embeddings = OpenAIEmbeddings()
-    knowledge_base = FAISS.from_texts(chunks, embeddings)
-    print("Created embeddings")
-    return knowledge_base
-
-
 def process_pdf():
     print("Processing PDF.")
     if st.session_state.pdf is not None:
         with st.spinner("Processing PDF."):
-            st.session_state.doc_context = pdf_to_text(st.session_state.pdf)
-            st.session_state.embeddings = doc_context_to_embeddings(st.session_state.doc_context)
+            try:
+                st.session_state.embeddings = DocumentSummarizer(st.session_state.pdf).to_embeddings()
+                st.session_state.messages.append({"role": "assistant",
+                                                  "avatar": "🤖",
+                                                  "content": f'''
+                PDF {st.session_state.pdf.name} processed successfully. Debaters will draw on it for context.
+                '''})
+            except EmbeddingsException as e:
+                st.session_state.messages.append({"role": "assistant",
+                                                  "avatar": "🤖",
+                                                  "content": '''
+                                          Error creating embeddings. Are you sure your OpenAI API key is correct?
+                                          Please check your key, then remove and re-add the PDF.'''})
+    else:
+        st.session_state.embeddings = None
 
 
 def sidebar():
@@ -381,12 +369,13 @@ def set_openapi_key(key):
 def main():
     init()
 
-    # Get debater information from sidebar
-    sidebar()
-
     st.text(body='''
         Welcome to Master Debaters! They will debate on the topic of your choice. Enjoy!
         ''')
+
+    # Get debater information from sidebar
+    sidebar()
+
     chat_area = st.empty()
     appendix = st.empty()
 
