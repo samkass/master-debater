@@ -1,6 +1,5 @@
 import logging
 import os
-from time import sleep
 
 import streamlit as st
 
@@ -265,6 +264,7 @@ def sidebar():
                          type="pdf",
                          on_change=process_pdf,
                          key="pdf",
+                         disabled=st.session_state.debating,
                          help="Will be used to provide additional or up-to-date context to debaters.")
 
     set_openapi_key(openapi_key)
@@ -380,9 +380,9 @@ def main():
         with appendix.container():
             with st.container():
                 col1, col2, col3 = st.columns(3)
-                new_chat = col1.button("New Debate", disabled=st.session_state.debating)
-                continue_chat = col2.button("Continue Debate", disabled=not st.session_state.debating)
-                conclude_chat = col3.button("Conclude Debate", disabled=not st.session_state.debating)
+                new_chat = col1.button("New Debate", key="NewDebateButton", disabled=st.session_state.debating)
+                continue_chat = col2.button("Continue Debate", key="ContinueDebateButton", disabled=not st.session_state.debating)
+                conclude_chat = col3.button("Conclude Debate", key="ConcludeDebateButton", disabled=not st.session_state.debating)
 
     if new_chat:
         if not is_debate_info_complete():
