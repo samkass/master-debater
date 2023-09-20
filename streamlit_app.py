@@ -1,14 +1,10 @@
 import logging
 import os
-from random import randint
 from time import sleep
 
 import streamlit as st
-from PyPDF2 import PdfReader
-from langchain import FAISS
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
 
+from ChatTestIterator import ChatTestIterator
 from DocumentSummarizer import DocumentSummarizer, EmbeddingsException
 from ParleyPossibilities import PARLEY_DEBATE_TOPIC_LIST, PARLEY_DEBATE_PERSONA_LIST
 from Persona import Persona
@@ -413,18 +409,6 @@ def main():
             generate_response_pair("conclusion")
         st.session_state.debating = False
         st.experimental_rerun()
-
-
-# Return a string of random numbers to simulate a streaming chat service
-class ChatTestIterator:
-    def __init__(self, count=10):
-        self.count = count
-
-    def __iter__(self):
-        # pause 0.5 seconds and yield a new random number.
-        for i in range(self.count):
-            sleep(0.2)
-            yield f"{randint(0, 100)} "
 
 
 # Press the green button in the gutter to run the script.
