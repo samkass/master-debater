@@ -1,9 +1,8 @@
 python-dotenv
 streamlit~=1.26.0
-streamlit-chat
-langchain~=0.0.263
+langchain~=0.0.295
 tiktoken
-openai
+openai~=0.28.0
 tenacity
 
 pypdf2~=3.0.1
