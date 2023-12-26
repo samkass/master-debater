@@ -16,10 +16,14 @@ from StreamingChatWithEmbeddings import StreamingChatWithEmbeddings
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
 
 
+# If there is a secrets file, load the secret and put it into an env variable
 @st.cache_resource
 def check_and_load_stsecret(name):
-    if name in st.secrets and st.secrets[name] != "":
-        os.environ.setdefault(name, st.secrets[name])
+    try:
+        if name in st.secrets and st.secrets[name] != "":
+            os.environ.setdefault(name, st.secrets[name])
+    except OSError as e:
+        logging.error(f"Secrets file missing or unloadable for {name}")
 
 
 def init_state():
