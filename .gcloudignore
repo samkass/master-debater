@@ -1,0 +1,12 @@
+# if you edit this, also edit .gcloudignore
+
+# Exclude virtual environment directories
+venv/
+# Exclude compiled Python files
+*.pyc
+# Exclude temporary files
+*.log
+# Exclude README
+README.md
+# Exclude .gitignore
+.gitignore
