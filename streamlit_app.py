@@ -106,10 +106,10 @@ def init_debaters():
 def init():
     st.set_page_config(
         page_title="Master-Debaters",
-        page_icon="🤷",
+        page_icon=":shrug:",
         menu_items={
-            "About": '''Master Debater  
-https://master-debater.streamlit.app  
+            "About": '''Master Debaters  
+https://chat.master-debaters.com 
 Copyright 2023 Sam Kass. All Rights Reserved.'''
         }
     )
