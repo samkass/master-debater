@@ -106,7 +106,7 @@ def init_debaters():
 def init():
     st.set_page_config(
         page_title="Master-Debaters",
-        page_icon="🤷‍",
+        page_icon="🤷",
         menu_items={
             "About": '''Master Debater  
 https://master-debater.streamlit.app  
