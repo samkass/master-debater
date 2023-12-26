@@ -178,7 +178,7 @@ def process_pdf():
 
 def sidebar():
     with st.sidebar:
-        if 'OPENAI_API_KEY' not in st.secrets:
+        if not os.getenv("OPENAI_API_KEY"):
             openapi_key = st.text_input(label="OpenAI API Key",
                                         value="",
                                         type="password",

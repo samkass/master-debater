@@ -10,3 +10,5 @@ venv/
 README.md
 # Exclude .gitignore
 .gitignore
+# Exclude StreamLit files
+.streamlit/*
