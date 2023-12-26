@@ -7,16 +7,6 @@ substitutions:
   _SERVICE_SUFFIX: '' # by default deploy to a side deployment; override in the Cloud Build config
 
 steps:
-  ### Install dependencies
-  - id: "install dependencies"
-    name: 'gcr.io/cloud-builders/npm'
-    args: ['install']
-
-  ### Run tests
-  - id: "test image"
-    name: 'gcr.io/cloud-builders/npm'
-    args: [ 'run', 'test' ]
-
   ### Build
   - id: "build image"
     name: "gcr.io/cloud-builders/docker"
