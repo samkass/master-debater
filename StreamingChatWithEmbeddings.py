@@ -1,7 +1,7 @@
 import queue
 import threading
 
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.base import Chain
@@ -28,7 +28,7 @@ class StreamingChatWithEmbeddings:
         return PromptTemplate(input_variables=["history", "input", "doc_chat_context"],
                               template=DEBATE_TEMPLATE)
 
-    def __init__(self, embeddings, model_name=MODEL_NAME, temperature=TEMPERATURE):
+    def __init__(self, embeddings, model_name=MODEL_NAME, temperature=TEMPERATURE, verbose=False):
         print("Initializing StreamingChat")
 
         prompt_template = PromptTemplate.from_template(DEBATE_TEMPLATE)
@@ -43,6 +43,7 @@ class StreamingChatWithEmbeddings:
             llm=llm,
             retriever=embeddings.as_retriever(),
             condense_question_prompt=prompt_template,
+            verbose=verbose,
             memory=ConversationBufferMemory(  # Use ConversationSummaryBufferMemory?
                 llm=llm,
                 max_token_limit=1000,

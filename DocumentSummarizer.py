@@ -1,5 +1,5 @@
 from PyPDF2 import PdfReader
-from langchain import FAISS
+from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 

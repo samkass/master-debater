@@ -41,6 +41,7 @@ def init_modes():
     check_and_load_stsecret("TEST_MODE")
     check_and_load_stsecret("SHOW_SETTINGS")
     check_and_load_stsecret("USE_STREAMING")
+    check_and_load_stsecret("VERBOSE_LOGGING")
 
     # Also put settings into session state
     if os.getenv("TEST_MODE") != "":
@@ -55,16 +56,23 @@ def init_modes():
         use_streaming = os.getenv("USE_STREAMING") == "True"
     else:
         use_streaming = False
+    if os.getenv("VERBOSE_LOGGING") != "":
+        verbose_logging = os.getenv("VERBOSE_LOGGING") == "True"
+    else:
+        verbose_logging = False
 
     st.session_state.settings = {
         "test_mode": test_mode,
         "show_settings": show_settings,
-        "use_streaming": use_streaming
+        "use_streaming": use_streaming,
+        "verbose_logging": verbose_logging
     }
 
+    logging.getLogger().setLevel(logging.DEBUG if verbose_logging else logging.INFO)
     logging.info(f"TEST_MODE = {st.session_state.settings['test_mode']}")
     logging.info(f"SHOW_SETTINGS = {st.session_state.settings['show_settings']}")
     logging.info(f"USE_STREAMING = {st.session_state.settings['use_streaming']}")
+    logging.info(f"VERBOSE_LOGGING = {st.session_state.settings['verbose_logging']}")
 
 
 def init_debaters():
@@ -274,11 +282,15 @@ def new_debate():
     st.session_state.messages = []
 
     if st.session_state.embeddings is None:
-        st.session_state.debater1_chat = StreamingChat()
-        st.session_state.debater2_chat = StreamingChat()
+        st.session_state.debater1_chat = StreamingChat(verbose=st.session_state.settings['verbose_logging'])
+        st.session_state.debater2_chat = StreamingChat(verbose=st.session_state.settings['verbose_logging'])
     else:
-        st.session_state.debater1_chat = StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings)
-        st.session_state.debater2_chat = StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings)
+        st.session_state.debater1_chat = \
+            StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings,
+                                        verbose=st.session_state.settings['verbose_logging'])
+        st.session_state.debater2_chat = \
+            StreamingChatWithEmbeddings(embeddings=st.session_state.embeddings,
+                                        verbose=st.session_state.settings['verbose_logging'])
 
     st.session_state.debater1_response = ""
     st.session_state.debater2_response = ""
@@ -397,18 +409,18 @@ def main():
             with appendix.container():
                 generate_response_pair("opening")
             st.session_state.debating = True
-            st.experimental_rerun()
+            st.rerun()
 
     if continue_chat:
         with appendix.container():
             generate_response_pair("response")
-        st.experimental_rerun()
+        st.rerun()
 
     if conclude_chat:
         with appendix.container():
             generate_response_pair("conclusion")
         st.session_state.debating = False
-        st.experimental_rerun()
+        st.rerun()
 
 
 # Press the green button in the gutter to run the script.

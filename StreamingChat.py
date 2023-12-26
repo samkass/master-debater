@@ -1,7 +1,8 @@
 import queue
 import threading
 
-from langchain import ConversationChain, PromptTemplate
+from langchain.prompts import PromptTemplate
+from langchain.chains import ConversationChain
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains.base import Chain
 from langchain.chat_models import ChatOpenAI

@@ -13,13 +13,13 @@ class Persona:
         seed = name if name is not None and name != "" else random.choice(string.ascii_letters)
         self.avatar = f"https://api.dicebear.com/5.x/{Persona.AVATAR_STYLE}/svg?seed={seed}"
 
-    def prompt_for_phase(self, phase, topic, prompt):
+    def prompt_for_phase(self, phase, topic, opponent_prompt=""):
         if phase == "opening":
-            return self.opening_prompt(topic, prompt)
+            return self.opening_prompt(topic, opponent_prompt)
         elif phase == "response":
-            return self.response_prompt(topic, prompt)
+            return self.response_prompt(topic, opponent_prompt)
         elif phase == "conclusion":
-            return self.conclusion_prompt(topic, prompt)
+            return self.conclusion_prompt(topic, opponent_prompt)
 
     def opening_prompt(self, topic, prompt=""):
         remarks = ""
