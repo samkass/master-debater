@@ -42,6 +42,7 @@ def init_modes():
     check_and_load_stsecret("SHOW_SETTINGS")
     check_and_load_stsecret("USE_STREAMING")
     check_and_load_stsecret("VERBOSE_LOGGING")
+    check_and_load_stsecret("ALLOW_DOCS")
 
     # Also put settings into session state
     if os.getenv("TEST_MODE") != "":
@@ -60,12 +61,17 @@ def init_modes():
         verbose_logging = os.getenv("VERBOSE_LOGGING") == "True"
     else:
         verbose_logging = False
+    if os.getenv("ALLOW_DOCS") != "":
+        allow_docs = os.getenv("ALLOW_DOCS") == "True"
+    else:
+        allow_docs = False
 
     st.session_state.settings = {
         "test_mode": test_mode,
         "show_settings": show_settings,
         "use_streaming": use_streaming,
-        "verbose_logging": verbose_logging
+        "verbose_logging": verbose_logging,
+        "allow_docs": allow_docs
     }
 
     logging.getLogger().setLevel(logging.DEBUG if verbose_logging else logging.INFO)
@@ -267,13 +273,13 @@ def sidebar():
                 with st.expander("Settings", expanded=False):
                     st.session_state.model_name = st.selectbox("Model",
                                                                ("gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
-
-        st.file_uploader("PDF Document (optional)",
-                         type="pdf",
-                         on_change=process_pdf,
-                         key="pdf",
-                         disabled=st.session_state.debating,
-                         help="Will be used to provide additional or up-to-date context to debaters.")
+        if st.session_state.settings["allow_docs"]:
+            st.file_uploader("PDF Document (optional)",
+                             type="pdf",
+                             on_change=process_pdf,
+                             key="pdf",
+                             disabled=st.session_state.debating,
+                             help="Will be used to provide additional or up-to-date context to debaters.")
 
     set_openapi_key(openapi_key)
 
