@@ -2,7 +2,7 @@ import logging
 import os
 
 import streamlit as st
-from streamlit.components.v1 import html
+import streamlit.components.v1 as components
 
 from ChatTestIterator import ChatTestIterator
 from DocumentSummarizer import DocumentSummarizer, EmbeddingsException
@@ -12,6 +12,11 @@ from DebateRandomizer import DebateRandomizer
 from StreamingChat import StreamingChat
 from StreamingChatWithEmbeddings import StreamingChatWithEmbeddings
 
+# Define adsense component for use in sidebar
+adsense_component = components.declare_component(
+    "adsense_component",
+    path="./adsense_component"
+)
 
 # This application simulates a debate between two personas using OpenAI's API.
 # It implements a streaming chat interface using LangChain, OpenAI, and Streamlit.
@@ -123,23 +128,6 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         st.session_state.response = ""
     if "embeddings" not in st.session_state:
         st.session_state.embeddings = None
-
-
-def get_ad_code():
-    return '''
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6149690982187695"
-     crossorigin="anonymous"></script>
-<!-- Lower Sidebar Ad -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6149690982187695"
-     data-ad-slot="4715210406"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-'''
 
 
 def generate_dropdowns():
@@ -300,7 +288,7 @@ def sidebar():
                              help="Will be used to provide additional or up-to-date context to debaters.")
 
         if st.session_state.settings["show_ads"]:
-            html(get_ad_code(), height=250)
+            adsense_component()
 
     set_openapi_key(openapi_key)
 

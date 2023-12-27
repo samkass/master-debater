@@ -4,15 +4,15 @@ WORKDIR /app
 
 # Copy just the requirements (do this early to avoid rebuilding the image when requirements don't change)
 COPY requirements.txt ./
-RUN mkdir ./.streamlit/
-
-# Create the secrets file
-RUN sh -c 'touch ./.streamlit/secrets.toml'
 
 # Install dependencies
 RUN pip3 install -r requirements.txt --no-cache-dir
 
-# Copy your application source and headers
+# Create an empty secrets file to avoid errors in Streamlit
+RUN mkdir ./.streamlit/
+RUN sh -c 'touch ./.streamlit/secrets.toml'
+
+# Copy application and resources
 COPY . ./
 
 # Copy your header injection script
