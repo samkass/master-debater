@@ -2,6 +2,7 @@ import logging
 import os
 
 import streamlit as st
+from streamlit.components.v1 import html
 
 from ChatTestIterator import ChatTestIterator
 from DocumentSummarizer import DocumentSummarizer, EmbeddingsException
@@ -26,6 +27,11 @@ def check_and_load_stsecret(name):
         logging.error(f"Secrets file missing or unloadable for {name}")
 
 
+@st.cache_resource
+def getenv_bool(name, default):
+    return os.getenv(name, default).strip('"') == "True"
+
+
 def init_state():
     if 'debating' not in st.session_state:
         st.session_state.debating = False
@@ -47,35 +53,23 @@ def init_modes():
     check_and_load_stsecret("USE_STREAMING")
     check_and_load_stsecret("VERBOSE_LOGGING")
     check_and_load_stsecret("ALLOW_DOCS")
+    check_and_load_stsecret("SHOW_ADS")
 
     # Also put settings into session state
-    if os.getenv("TEST_MODE") != "":
-        test_mode = os.getenv("TEST_MODE") == "True"
-    else:
-        test_mode = True
-    if os.getenv("SHOW_SETTINGS") != "":
-        show_settings = os.getenv("SHOW_SETTINGS") == "True"
-    else:
-        show_settings = False
-    if os.getenv("USE_STREAMING") != "":
-        use_streaming = os.getenv("USE_STREAMING") == "True"
-    else:
-        use_streaming = False
-    if os.getenv("VERBOSE_LOGGING") != "":
-        verbose_logging = os.getenv("VERBOSE_LOGGING") == "True"
-    else:
-        verbose_logging = False
-    if os.getenv("ALLOW_DOCS") != "":
-        allow_docs = os.getenv("ALLOW_DOCS") == "True"
-    else:
-        allow_docs = False
+    test_mode = getenv_bool("TEST_MODE", "True")
+    show_settings = getenv_bool("SHOW_SETTINGS", "False")
+    use_streaming = getenv_bool("USE_STREAMING", "True")
+    verbose_logging = getenv_bool("VERBOSE_LOGGING", "False")
+    allow_docs = getenv_bool("ALLOW_DOCS", "False")
+    show_ads = getenv_bool("SHOW_ADS", "False")
 
     st.session_state.settings = {
         "test_mode": test_mode,
         "show_settings": show_settings,
         "use_streaming": use_streaming,
         "verbose_logging": verbose_logging,
-        "allow_docs": allow_docs
+        "allow_docs": allow_docs,
+        "show_ads": show_ads
     }
 
     logging.getLogger().setLevel(logging.DEBUG if verbose_logging else logging.INFO)
@@ -83,6 +77,9 @@ def init_modes():
     logging.info(f"SHOW_SETTINGS = {st.session_state.settings['show_settings']}")
     logging.info(f"USE_STREAMING = {st.session_state.settings['use_streaming']}")
     logging.info(f"VERBOSE_LOGGING = {st.session_state.settings['verbose_logging']}")
+    logging.info(f"ALLOW_DOCS = {st.session_state.settings['allow_docs']}")
+    logging.info(f"SHOW_ADS = {st.session_state.settings['show_ads']}")
+    logging.info(f"{st.session_state.settings}")
 
 
 def init_debaters():
@@ -126,6 +123,23 @@ Copyright 2023 Sam Kass. All Rights Reserved.'''
         st.session_state.response = ""
     if "embeddings" not in st.session_state:
         st.session_state.embeddings = None
+
+
+def get_ad_code():
+    return '''
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6149690982187695"
+     crossorigin="anonymous"></script>
+<!-- Lower Sidebar Ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6149690982187695"
+     data-ad-slot="4715210406"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+'''
 
 
 def generate_dropdowns():
@@ -273,10 +287,10 @@ def sidebar():
                           disabled=st.session_state.debating,
                           help="A couple of adjectives, for example, 'smart, funny, charming'")
 
-            if st.session_state.settings["show_settings"]:
-                with st.expander("Settings", expanded=False):
-                    st.session_state.model_name = st.selectbox("Model",
-                                                               ("gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
+        if st.session_state.settings["show_settings"]:
+            with st.expander("Settings", expanded=False):
+                st.session_state.model_name = st.selectbox("Model",
+                                                           ("gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-3.5", 'gpt-4'))
         if st.session_state.settings["allow_docs"]:
             st.file_uploader("PDF Document (optional)",
                              type="pdf",
@@ -284,6 +298,9 @@ def sidebar():
                              key="pdf",
                              disabled=st.session_state.debating,
                              help="Will be used to provide additional or up-to-date context to debaters.")
+
+        if st.session_state.settings["show_ads"]:
+            html(get_ad_code(), height=250)
 
     set_openapi_key(openapi_key)
 
