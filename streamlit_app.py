@@ -288,7 +288,11 @@ def sidebar():
                              help="Will be used to provide additional or up-to-date context to debaters.")
 
         if st.session_state.settings["show_ads"]:
-            adsense_component()
+            # html_file = open("./adsense.html", 'r', encoding='utf-8')
+            # source_code = html_file.read()
+            # print(source_code)
+            # components.html(source_code, height=400)
+            adsense_component(key="adsense_component", height=400)
 
     set_openapi_key(openapi_key)
 
