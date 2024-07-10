@@ -88,19 +88,20 @@ def init_modes():
 
 
 def init_debaters():
+    params = st.query_params
+    parley_mode = params is not None \
+                  and 'parleyMode' in params \
+                  and params['parleyMode'] == 'true'
     if 'randomizer' not in st.session_state:
-        params = st.query_params
-        if params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true':
+        if parley_mode:
             st.session_state.randomizer = DebateRandomizer(topics=PARLEY_DEBATE_TOPIC_LIST,
                                                            personas=PARLEY_DEBATE_PERSONA_LIST)
         else:
             st.session_state.randomizer = DebateRandomizer()
-    if 'dropdown_mode' not in st.session_state:
-        params = st.query_params
-        st.session_state.dropdown_mode = \
-            params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true'
     if 'debater1_name' not in st.session_state or 'debater2_name' not in st.session_state:
         randomize_debaters()
+    if 'dropdown_mode' not in st.session_state:
+        st.session_state.dropdown_mode = parley_mode
     if 'topic' not in st.session_state:
         st.session_state.topic = st.session_state.randomizer.get_topic()
 
@@ -216,6 +217,12 @@ def sidebar():
 
         with st.expander("Debater", expanded=True):
             if st.session_state.dropdown_mode:
+                st.session_state.debater1_displayname = \
+                    st.session_state.persona_displayname_list[
+                        st.session_state.persona_name_list.index(st.session_state.debater1_name)
+                    ]
+                debater1_name_index = \
+                    st.session_state.persona_displayname_list.index(st.session_state.debater1_displayname)
                 st.selectbox(
                     label="Debater Name",
                     key="debater1_displayname",
@@ -223,8 +230,6 @@ def sidebar():
                     placeholder="Name",
                     disabled=st.session_state.debating,
                     help="Name of the first debater")
-                debater1_name_index = \
-                    st.session_state.persona_displayname_list.index(st.session_state.debater1_displayname)
                 debater1_name = st.session_state.persona_name_list[debater1_name_index]
                 set_debater1_from_persona(st.session_state.randomizer.get_persona_object(name=debater1_name))
             else:
@@ -247,6 +252,12 @@ def sidebar():
 
         with st.expander("Opponent", expanded=True):
             if st.session_state.dropdown_mode:
+                st.session_state.debater2_displayname = \
+                    st.session_state.persona_displayname_list[
+                        st.session_state.persona_name_list.index(st.session_state.debater2_name)
+                    ]
+                debater2_name_index = \
+                    st.session_state.persona_displayname_list.index(st.session_state.debater2_displayname)
                 st.selectbox(
                     label="Debater Name",
                     key="debater2_displayname",
@@ -254,8 +265,6 @@ def sidebar():
                     placeholder="Name",
                     disabled=st.session_state.debating,
                     help="Name of the opponent debater")
-                debater2_name_index = \
-                    st.session_state.persona_displayname_list.index(st.session_state.debater2_displayname)
                 debater2_name = st.session_state.persona_name_list[debater2_name_index]
                 set_debater2_from_persona(st.session_state.randomizer.get_persona_object(name=debater2_name))
             else:
