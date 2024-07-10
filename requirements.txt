@@ -1,9 +1,10 @@
 python-dotenv~=1.0.0
-streamlit~=1.30.0
-langchain~=0.0.352
+streamlit~=1.36
+langchain~=0.2
+langchain-community~=0.2
 tiktoken
-openai~=1.6.1
+openai~=1.35
 tenacity
 
 pypdf2~=3.0.1
-faiss-cpu~=1.7.0
+faiss-cpu~=1.8.0

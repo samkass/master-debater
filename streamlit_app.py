@@ -89,14 +89,14 @@ def init_modes():
 
 def init_debaters():
     if 'randomizer' not in st.session_state:
-        params = st.experimental_get_query_params()
+        params = st.query_params
         if params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true':
             st.session_state.randomizer = DebateRandomizer(topics=PARLEY_DEBATE_TOPIC_LIST,
                                                            personas=PARLEY_DEBATE_PERSONA_LIST)
         else:
             st.session_state.randomizer = DebateRandomizer()
     if 'dropdown_mode' not in st.session_state:
-        params = st.experimental_get_query_params()
+        params = st.query_params
         st.session_state.dropdown_mode = \
             params is not None and 'parleyMode' in params and params['parleyMode'][0] == 'true'
     if 'debater1_name' not in st.session_state or 'debater2_name' not in st.session_state:
