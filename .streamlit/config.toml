@@ -181,7 +181,7 @@ toolbarMode = "minimal"
 # * "none" : Streamlit will not watch files.
 
 # Default: "auto"
-# fileWatcherType = "auto"
+fileWatcherType = "none"
 
 # Symmetric key used to produce signed cookies. If deploying on multiple replicas, this should
 # be set to the same value across all replicas to ensure they all share the same secret.
@@ -252,7 +252,7 @@ toolbarMode = "minimal"
 # Enable serving files from a `static` directory in the running app's directory.
 
 # Default: false
-# enableStaticServing = false
+enableStaticServing = true
 
 # Server certificate file for connecting via HTTPS.
 # Must be set at the same time as "server.sslKeyFile".
