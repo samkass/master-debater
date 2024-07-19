@@ -20,7 +20,7 @@ Me:"""
 
 
 class StreamingChatWithEmbeddings:
-    MODEL_NAME = "gpt-3.5-turbo-16k"
+    MODEL_NAME = "gpt-4o-mini"
     TEMPERATURE = 0.9
 
     @staticmethod

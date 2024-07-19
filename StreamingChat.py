@@ -21,7 +21,7 @@ Me:"""
 
 
 class StreamingChat:
-    MODEL_NAME = "gpt-3.5-turbo"
+    MODEL_NAME = "gpt-4o-mini"
     TEMPERATURE = 0.9
 
     @staticmethod
