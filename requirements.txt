@@ -1,4 +1,4 @@
-python-dotenv~=1.0.0
+python-dotenv~=1.0
 streamlit~=1.36
 langchain~=0.2
 langchain-community~=0.2
@@ -7,4 +7,4 @@ openai~=1.35
 tenacity
 
 pypdf2~=3.0.1
-faiss-cpu~=1.8.0
+faiss-cpu~=1.8
