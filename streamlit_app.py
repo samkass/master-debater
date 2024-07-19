@@ -330,6 +330,24 @@ def print_debate():
             st.markdown(msg["content"])
 
 
+def print_instructions():
+    with st.container(border=True):
+        st.text(body='''
+            Master Debaters will debate on the topic of your choice, taking the
+            personas as described in the sidebar. They will attempt to use the context 
+            of the PDF document, if provided. The first debater will take a position
+            on the topic, and the opponent will be required to take the opposite side.
+            
+            If a persona is that of a well-known figure, it will attempt to imitate 
+            the style of speech of that figure. The text produced should not be construed 
+            as the actual opinion of the figure. Also, the avatars are randomly generated 
+            from the name, and do not represent the actual figure.
+            
+            Finally, please understand that this is automatically generated text and can 
+            contain factual errors. All that being said, Enjoy!
+            ''')
+
+
 def chat_response_generator(topic, phase, chat, persona, opponent_response):
     if st.session_state.settings['test_mode']:
         chat_response = ChatTestIterator()
@@ -424,6 +442,8 @@ def main():
                 continue_chat = col2.button("Continue Debate", key="ContinueDebateButton", disabled=not st.session_state.debating)
                 conclude_chat = col3.button("Conclude Debate", key="ConcludeDebateButton", disabled=not st.session_state.debating)
 
+                instructions_area = st.empty()
+
     if new_chat:
         if not is_debate_info_complete():
             with st.chat_message("assistant"):
@@ -449,6 +469,10 @@ def main():
             generate_response_pair("conclusion")
         st.session_state.debating = False
         st.rerun()
+
+    if len(st.session_state.messages) == 0:
+        with instructions_area:
+            print_instructions()
 
 
 # Press the green button in the gutter to run the script.
